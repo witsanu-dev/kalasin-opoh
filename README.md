@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <img src="https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker" alt="Docker" />
+  <img src="https://img.shields.io/badge/MariaDB-10.11-003545?style=for-the-badge&logo=mariadb" alt="MariaDB" />
+  
+  <br />
+  <br />
 
-## Getting Started
+  <h1>Kalasin OPOH Sync Platform</h1>
+  <p>
+    ระบบบริหารจัดการและเชื่อมโยงข้อมูลสารสนเทศทางการแพทย์ (OPOH) <br />
+    รองรับการดึงข้อมูลเตียง (Beds), ห้องคลอด (LR), ห้องผ่าตัด (OR) และคิวผ่าตัด (Surgical Queue) <br />จากระบบ HIS (HOSxP) เพื่อส่งเข้าศูนย์กลางโดยอัตโนมัติ
+  </p>
+</div>
 
-First, run the development server:
+<br />
 
+## 🚀 คุณสมบัติเด่น (Features)
+- **Data Synchronization**: ดึงข้อมูลและปรับแต่งโครงสร้างผ่าน SQL Editor ได้จากหน้าเว็บโดยตรง
+- **Smart Dictionary**: เชื่อมต่อ Data Dictionary รหัสมาตรฐานของโรงพยาบาลโดยอัตโนมัติ
+- **Dashboard**: สรุปข้อมูลเตียง ห้องคลอด ห้องผ่าตัด และคิวผ่าตัด แบบ Real-time
+- **Dockerized**: ติดตั้งง่ายดายแบบ One-Click ผ่าน Docker Compose พร้อมฐานข้อมูลในตัว
+
+---
+
+## 📋 สิ่งที่ต้องเตรียม (Prerequisites)
+ก่อนเริ่มต้นติดตั้งเซิร์ฟเวอร์ กรุณาตรวจสอบให้แน่ใจว่าเครื่องของคุณมีซอฟต์แวร์ต่อไปนี้:
+- [Git](https://git-scm.com/downloads)
+- [Docker](https://docs.docker.com/get-docker/) และ [Docker Compose](https://docs.docker.com/compose/install/)
+
+---
+
+## 🛠️ ขั้นตอนการติดตั้ง (Installation Guide)
+
+### 1. ดาวน์โหลดโปรเจกต์
+ทำการโคลนโปรเจกต์ลงบนเซิร์ฟเวอร์ของคุณ:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/witsanu-dev/kalasin-opoh.git
+cd kalasin-opoh
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. ตั้งค่าคอนฟิก (Environment Variables)
+คัดลอกไฟล์ `.env.example` เป็น `.env` และแก้ไขค่าต่างๆ ให้ตรงกับโรงพยาบาลของคุณ:
+```bash
+cp .env.example .env
+```
+เปิดไฟล์ `.env` ด้วย Text Editor และตั้งค่ารหัสสถานพยาบาล และการเชื่อมต่อ HOSxP:
+```ini
+NEXT_PUBLIC_HOSPITAL_NAME=KALASIN
+NEXT_PUBLIC_HOSPITAL_CODE=11078
+NEXT_PUBLIC_HOSPITAL_FULL_NAME=โรงพยาบาลกมลาไสย
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# ข้อมูลการเชื่อมต่อฐานข้อมูล HOSxP (สำคัญ)
+HOSXP_DB_HOST=192.168.x.x
+HOSXP_DB_USER=sa
+HOSXP_DB_PASSWORD=your_password
+HOSXP_DB_NAME=hos
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. รันระบบด้วย Docker (Deploy)
+ใช้คำสั่งด้านล่างเพื่อสร้างคอนเทนเนอร์และสตาร์ทระบบทั้งหมด (Web App และ Database):
+```bash
+docker-compose up -d --build
+```
 
-## Learn More
+> [!TIP]
+> **เพียงเท่านี้ระบบก็พร้อมใช้งาน!** ระบบฐานข้อมูลย่อยจะถูกสร้างอัตโนมัติพร้อมบัญชีผู้ดูแลระบบ (Admin) เริ่มต้น
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔐 ข้อมูลเข้าสู่ระบบ (Default Credentials)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+หลังจากการติดตั้งเสร็จสมบูรณ์ สามารถเข้าถึงระบบได้ผ่านเว็บบราวเซอร์ที่ `http://localhost:46` *(หรือ IP ของเซิร์ฟเวอร์)*
 
-## Deploy on Vercel
+- **Username**: `admin`
+- **Password**: `opoh@2026`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> [!WARNING]
+> เพื่อความปลอดภัย กรุณาเปลี่ยนรหัสผ่านทันทีหลังจากการเข้าสู่ระบบครั้งแรก
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📂 โครงสร้างฐานข้อมูล
+โปรเจกต์นี้ใช้โครงสร้างฐานข้อมูล MySQL (MariaDB) สำหรับเก็บการตั้งค่าภายใน โดยมีสคริปต์เตรียมพร้อมอยู่ที่:
+- `docker/init.sql` : สคริปต์สร้างฐานข้อมูลและเพิ่มบัญชี Admin အตโนมัติเมื่อรัน Docker ครั้งแรก
+- ข้อมูล SQL เบื้องต้นสำหรับคิวรี HOSxP จะถูกกำหนดให้ดึงค่าอัตโนมัติผ่านระบบ Web UI
+
+---
+
+## 💡 การปรับแต่งคำสั่ง SQL (SQL Customization)
+แอดมินสามารถเข้าไปที่เมนู **"ตั้งค่าคำสั่ง SQL"** ภายในระบบ เพื่อแก้ไขคำสั่ง `SELECT` ในการดึงข้อมูลจาก HOSxP ได้เอง 
+ระบบมาพร้อมกับ *SQL Code Editor* และ *HIS Data Dictionary* เพื่อความสะดวกในการตรวจสอบรหัสสถานะที่ถูกต้อง
+
+<div align="center">
+  <br />
+  <p><i>Developed & Maintained by Witsanu-Dev</i></p>
+</div>
