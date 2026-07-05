@@ -48,9 +48,7 @@ export async function GET(request: Request) {
         export_code,
         last_sync_at
       FROM bed_management_summary
-      WHERE ward_name LIKE '%ICU%' 
-         OR ward_code = 'ICU' 
-         OR export_code = 'ICU'
+      WHERE is_icu = 1
       ORDER BY ward_name ASC
     `;
 

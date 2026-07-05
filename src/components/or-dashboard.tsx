@@ -259,30 +259,26 @@ export function ORDashboard() {
     });
   };
 
-  const showQueryModal = () => {
-    const sqlQuery = `SELECT
-    CONCAT(
-        (
-            SELECT COUNT(*) - COUNT(DISTINCT o.room_id)
-            FROM operation_room r
-            LEFT JOIN operation_list o
-                ON o.room_id = r.room_id
-                AND o.request_operation_date = CURDATE()
-                AND o.status_id = 2
-        ),
-        '/',
-        (SELECT COUNT(*) FROM operation_room)
-    ) AS room_available,
-    SUM(CASE WHEN status_id = 2 THEN 1 ELSE 0 END) AS operating_count,
-    SUM(CASE WHEN status_id = 1 THEN 1 ELSE 0 END) AS waiting_count,
-    SUM(CASE WHEN status_id = 3 THEN 1 ELSE 0 END) AS completed_count,
-    SUM(CASE WHEN status_id = 9 THEN 1 ELSE 0 END) AS cancelled_count,
-    COUNT(*) AS total_case_today
-FROM operation_list
-WHERE request_operation_date = CURDATE();`;
+  const showQueryModal = async () => {
+    MySwal.fire({
+      title: 'กำลังโหลด...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    let sqlQuery = 'ไม่สามารถดึงคำสั่ง SQL ได้';
+    try {
+      const res = await fetch('/api/sql-script?type=sync_or');
+      const data = await res.json();
+      if (data.sql) sqlQuery = data.sql;
+    } catch (error) {
+      console.error(error);
+    }
+    
+    MySwal.close();
 
     MySwal.fire({
-      title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query</span></div>',
+      title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query (or.sql)</span></div>',
       html: `
         <div class="relative mt-2 text-left bg-slate-900 rounded-md overflow-hidden border border-slate-700 shadow-xl">
           <div class="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
@@ -292,7 +288,7 @@ WHERE request_operation_date = CURDATE();`;
             </button>
           </div>
           <div class="p-4 overflow-x-auto">
-            <pre class="text-xs text-teal-300 font-mono leading-relaxed m-0">${sqlQuery}</pre>
+            <pre class="text-xs text-teal-300 font-mono leading-relaxed m-0">${sqlQuery.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
           </div>
         </div>
       `,

@@ -1,51 +1,14 @@
 import { NextResponse } from 'next/server';
 import hosxpDb from '@/lib/db/hosxp';
 import localDb from '@/lib/db/local';
+import { getSqlQuery } from '@/lib/utils/sql-reader';
 
 export const dynamic = 'force-dynamic'; // Always run fresh
 
 export async function POST(request: Request) {
   try {
     // 1. Query Data from HOSxP
-    const query = `
-      SELECT
-          w.ward,
-          w.name AS ward_name,
-
-          COUNT(DISTINCT b.bedno) AS total_bed,
-
-          COUNT(DISTINCT CASE
-              WHEN i.dchdate IS NULL
-              THEN ia.bedno
-          END) AS occupied_bed,
-
-          COUNT(DISTINCT b.bedno)
-          - COUNT(DISTINCT CASE
-              WHEN i.dchdate IS NULL
-              THEN ia.bedno
-          END) AS available_bed,
-
-          ROUND(
-              COUNT(DISTINCT CASE
-                  WHEN i.dchdate IS NULL
-                  THEN ia.bedno
-              END) * 100
-              / NULLIF(COUNT(DISTINCT b.bedno),0)
-          ,2) AS occupancy_rate,
-          MAX(b.export_code) AS export_code
-
-      FROM bedno b
-      LEFT JOIN roomno r ON r.roomno = b.roomno
-      LEFT JOIN ward w ON w.ward = r.ward
-      LEFT JOIN iptadm ia ON ia.bedno = b.bedno
-      LEFT JOIN ipt i ON i.an = ia.an
-
-      WHERE w.ward_active = 'Y'
-        AND b.export_code IS NOT NULL
-
-      GROUP BY w.ward,w.name
-      ORDER BY w.name;
-    `;
+    const query = getSqlQuery('sync_beds');
 
     const [rows]: any = await hosxpDb.query(query);
 
@@ -71,13 +34,14 @@ export async function POST(request: Request) {
         occupied_bed,
         available_bed,
         occupancy_rate,
-        export_code
+        export_code,
+        is_icu
       } = row;
 
       const upsertQuery = `
         INSERT INTO bed_management_summary 
-        (ward_code, ward_name, total_bed, occupied_bed, available_bed, occupancy_rate, export_code, last_sync_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (ward_code, ward_name, total_bed, occupied_bed, available_bed, occupancy_rate, export_code, is_icu, last_sync_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
         ward_name = VALUES(ward_name),
         total_bed = VALUES(total_bed),
@@ -85,6 +49,7 @@ export async function POST(request: Request) {
         available_bed = VALUES(available_bed),
         occupancy_rate = VALUES(occupancy_rate),
         export_code = VALUES(export_code),
+        is_icu = VALUES(is_icu),
         last_sync_at = VALUES(last_sync_at);
       `;
 
@@ -96,6 +61,7 @@ export async function POST(request: Request) {
         available_bed,
         occupancy_rate,
         export_code,
+        Number(is_icu) || 0,
         nowStr
       ]);
 

@@ -2,92 +2,14 @@ import { NextResponse } from 'next/server';
 import hosxpDb from '@/lib/db/hosxp';
 import localDb from '@/lib/db/local';
 import iconv from 'iconv-lite';
+import { getSqlQuery } from '@/lib/utils/sql-reader';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
     // 1. Query Data from HOSxP
-    const query = `
-      SELECT
-          x.hospcode,
-          HEX(h.Dhospital) AS hospital_name_hex,
-          x.waiting_labor,
-          x.normal_delivery,
-          x.cesarean_delivery,
-          x.abortion,
-          x.not_delivery,
-          x.total_case
-      FROM
-      (
-          SELECT
-              CASE
-                  WHEN pa.labour_hospcode REGEXP '[0-9]{5}$'
-                  THEN RIGHT(pa.labour_hospcode,5)
-                  ELSE 'UNKNOWN'
-              END AS hospcode,
-
-              SUM(CASE
-                      WHEN pa.labor_status_id = 1
-                       AND pa.discharge = 'N'
-                      THEN 1 ELSE 0
-                  END) AS waiting_labor,
-
-              SUM(CASE
-                      WHEN pa.labor_status_id = 2
-                       AND pa.labour_type_id = 1
-                       AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE()
-                      THEN 1 ELSE 0
-                  END) AS normal_delivery,
-
-              SUM(CASE
-                      WHEN pa.labor_status_id = 2
-                       AND pa.labour_type_id = 2
-                       AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE()
-                      THEN 1 ELSE 0
-                  END) AS cesarean_delivery,
-
-              SUM(CASE
-                      WHEN pa.labor_status_id = 3
-                       AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE()
-                      THEN 1 ELSE 0
-                  END) AS abortion,
-
-              SUM(CASE
-                      WHEN pa.labor_status_id = 4
-                       AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE()
-                      THEN 1 ELSE 0
-                  END) AS not_delivery,
-
-              SUM(CASE
-                      WHEN pa.labor_status_id = 1
-                       AND pa.discharge = 'N'
-                      THEN 1 ELSE 0
-                  END)
-              +
-              SUM(CASE
-                      WHEN pa.labor_status_id IN (2,3,4)
-                       AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE()
-                      THEN 1 ELSE 0
-                  END) AS total_case
-
-          FROM person_anc pa
-
-          GROUP BY
-              CASE
-                  WHEN pa.labour_hospcode REGEXP '[0-9]{5}$'
-                  THEN RIGHT(pa.labour_hospcode,5)
-                  ELSE 'UNKNOWN'
-              END
-      ) x
-
-      LEFT JOIN dbhospital h
-             ON h.idhospital = x.hospcode
-
-      WHERE x.total_case > 0
-
-      ORDER BY x.total_case DESC;
-    `;
+    const query = getSqlQuery('sync_lr');
 
     const [rows]: any = await hosxpDb.query(query);
 
@@ -111,7 +33,7 @@ export async function POST(request: Request) {
     for (const row of rows) {
       const {
         hospcode,
-        hospital_name_hex,
+        hospital_name: raw_hospital_name,
         waiting_labor,
         normal_delivery,
         cesarean_delivery,
@@ -121,8 +43,8 @@ export async function POST(request: Request) {
       } = row;
 
       let hospital_name = '';
-      if (hospital_name_hex) {
-        hospital_name = iconv.decode(Buffer.from(hospital_name_hex, 'hex'), 'tis620');
+      if (raw_hospital_name) {
+        hospital_name = iconv.decode(Buffer.from(raw_hospital_name, 'hex'), 'tis620');
       }
 
       const finalHospcode = hospcode === 'UNKNOWN' ? 'ไม่ระบุ' : hospcode;

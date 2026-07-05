@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, BedDouble, Activity, Stethoscope, Baby, Clock, Hospital, Settings, Server, LogOut } from "lucide-react";
+import { LayoutDashboard, BedDouble, Activity, Stethoscope, Baby, Clock, Hospital, Settings, Server, LogOut, Database } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean; onClose?: () => void }) {
@@ -91,6 +91,19 @@ export function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean; onClose
           >
             <Server className={`w-5 h-5 mr-3 ${pathname === "/opoh-sync" ? "text-teal-600" : "text-slate-400"}`} />
             ส่งข้อมูล OPOH API
+          </Link>
+
+          <Link 
+            href="/settings/sql" 
+            onClick={onClose}
+            className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+              pathname === "/settings/sql"
+                ? "bg-teal-50 text-teal-700 shadow-sm border border-teal-100" 
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
+            }`}
+          >
+            <Database className={`w-5 h-5 mr-3 ${pathname === "/settings/sql" ? "text-teal-600" : "text-slate-400"}`} />
+            ตั้งค่าคำสั่ง SQL
           </Link>
 
           <Link 

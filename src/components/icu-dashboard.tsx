@@ -283,25 +283,23 @@ export function ICUDashboard() {
     }
   };
 
-  const showQueryModal = () => {
-    const sqlQuery = `SELECT
-    w.ward,
-    w.name AS ward_name,
-    COUNT(DISTINCT b.bedno) AS total_bed,
-    COUNT(DISTINCT CASE WHEN i.dchdate IS NULL THEN ia.bedno END) AS occupied_bed,
-    COUNT(DISTINCT b.bedno) - COUNT(DISTINCT CASE WHEN i.dchdate IS NULL THEN ia.bedno END) AS available_bed,
-    ROUND(
-        COUNT(DISTINCT CASE WHEN i.dchdate IS NULL THEN ia.bedno END) * 100
-        / NULLIF(COUNT(DISTINCT b.bedno),0)
-    ,2) AS occupancy_rate
-FROM bedno b
-LEFT JOIN roomno r ON r.roomno = b.roomno
-LEFT JOIN ward w ON w.ward = r.ward
-LEFT JOIN iptadm ia ON ia.bedno = b.bedno
-LEFT JOIN ipt i ON i.an = ia.an
-WHERE w.ward_active = 'Y' AND b.export_code IS NOT NULL
-GROUP BY w.ward, w.name
-ORDER BY w.name;`;
+  const showQueryModal = async () => {
+    try {
+      MySwal.fire({
+        title: 'กำลังโหลด...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      const res = await fetch('/api/sql-script?type=sync_beds');
+      const data = await res.json();
+      
+      let sqlQuery = "ไม่พบคำสั่ง SQL ที่ตั้งค่าไว้ในระบบ";
+      if (res.ok && data.sql) {
+        sqlQuery = data.sql;
+      }
 
     MySwal.fire({
       title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query</span></div>',
@@ -338,7 +336,10 @@ ORDER BY w.name;`;
         }
       }
     });
-  };
+  } catch (error) {
+    MySwal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลคำสั่ง SQL ได้', 'error');
+  }
+};
 
   const columns = useMemo(() => [
     {

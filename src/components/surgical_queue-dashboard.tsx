@@ -594,7 +594,7 @@ export function SurgicalQueueDashboard() {
               className="bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all rounded-md px-6"
             >
               <Edit3 className="w-4 h-4 mr-2" />
-              บันทึก/อัปเดตข้อมูล
+              บันทึกข้อมูล
             </Button>
             <Button
               onClick={handleSendToOPOH}
@@ -602,7 +602,7 @@ export function SurgicalQueueDashboard() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all rounded-md px-6"
             >
               <Send className={`w-4 h-4 mr-2 ${sending ? 'animate-pulse' : ''}`} />
-              ส่งข้อมูลไป สสจ.
+              ส่งข้อมูล
             </Button>
           </div>
         </div>

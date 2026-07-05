@@ -344,25 +344,26 @@ export function BedDashboard() {
     });
   };
 
-  const showQueryModal = () => {
-    const sqlQuery = `SELECT
-    w.ward,
-    w.name AS ward_name,
-    COUNT(DISTINCT b.bedno) AS total_bed,
-    COUNT(DISTINCT CASE WHEN i.dchdate IS NULL THEN ia.bedno END) AS occupied_bed,
-    COUNT(DISTINCT b.bedno) - COUNT(DISTINCT CASE WHEN i.dchdate IS NULL THEN ia.bedno END) AS available_bed,
-    ROUND(COUNT(DISTINCT CASE WHEN i.dchdate IS NULL THEN ia.bedno END) * 100 / NULLIF(COUNT(DISTINCT b.bedno),0), 2) AS occupancy_rate
-FROM bedno b
-LEFT JOIN roomno r ON r.roomno = b.roomno
-LEFT JOIN ward w ON w.ward = r.ward
-LEFT JOIN iptadm ia ON ia.bedno = b.bedno
-LEFT JOIN ipt i ON i.an = ia.an
-WHERE w.ward_active = 'Y' AND b.export_code IS NOT NULL
-GROUP BY w.ward,w.name
-ORDER BY w.name;`;
+  const showQueryModal = async () => {
+    MySwal.fire({
+      title: 'กำลังโหลด...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    let sqlQuery = 'ไม่สามารถดึงคำสั่ง SQL ได้';
+    try {
+      const res = await fetch('/api/sql-script?type=sync_beds');
+      const data = await res.json();
+      if (data.sql) sqlQuery = data.sql;
+    } catch (error) {
+      console.error(error);
+    }
+    
+    MySwal.close();
 
     MySwal.fire({
-      title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query</span></div>',
+      title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query (beds.sql)</span></div>',
       html: `
         <div class="relative mt-2 text-left bg-slate-900 rounded-md overflow-hidden border border-slate-700 shadow-xl">
           <div class="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
@@ -372,7 +373,7 @@ ORDER BY w.name;`;
             </button>
           </div>
           <div class="p-4 overflow-x-auto">
-            <pre class="text-xs text-teal-300 font-mono leading-relaxed m-0">${sqlQuery}</pre>
+            <pre class="text-xs text-teal-300 font-mono leading-relaxed m-0">${sqlQuery.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
           </div>
         </div>
       `,

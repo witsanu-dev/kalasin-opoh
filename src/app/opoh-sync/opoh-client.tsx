@@ -26,9 +26,9 @@ export function OpohClient() {
 
   const getBangkokTime = () => {
     const d = new Date();
-    // Convert to UTC+7 (Bangkok)
-    const bangkokTime = new Date(d.getTime() + (7 * 60 * 60 * 1000));
-    return bangkokTime.toISOString().replace('T', ' ').replace('Z', '');
+    const bkkTime = new Date(d.getTime() + (7 * 60 * 60 * 1000));
+    // มาตรฐาน ISO 8601 สำหรับเวลาประเทศไทย: YYYY-MM-DDTHH:mm:ss.sss+07:00
+    return bkkTime.toISOString().replace('Z', '+07:00');
   };
 
   // Load API Key and Base URL from localStorage
@@ -98,7 +98,6 @@ export function OpohClient() {
         payload: {
           hospitalCode: ownHospitalCode,
           hospitalName: ownHospitalName,
-          updatedAt: getBangkokTime(),
           waitingLabor: lrData?.waiting_labor || 0,
           normalDelivery: lrData?.normal_delivery || 0,
           cesareanDelivery: lrData?.cesarean_delivery || 0,
@@ -117,7 +116,6 @@ export function OpohClient() {
         payload: {
           hospitalCode: ownHospitalCode,
           hospitalName: ownHospitalName,
-          updatedAt: getBangkokTime(),
           roomAvailableStr: orData?.room_available_str || "0/0",
           operatingCount: orData?.operating_count || 0,
           waitingCount: orData?.waiting_count || 0,
@@ -136,7 +134,6 @@ export function OpohClient() {
         payload: {
           hospitalCode: ownHospitalCode,
           hospitalName: ownHospitalName,
-          updatedAt: getBangkokTime(),
           totalCases: sqData?.total_cases || 0,
           generalSurgery: sqData?.general_surgery || 0,
           orthoSurgery: sqData?.ortho_surgery || 0,

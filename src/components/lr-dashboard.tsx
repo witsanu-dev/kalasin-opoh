@@ -272,47 +272,26 @@ export function LRDashboard() {
     });
   };
 
-  const showQueryModal = () => {
-    const sqlQuery = `SELECT
-    x.hospcode,
-    COALESCE(h.Dhospital,'ไม่ระบุสถานบริการ') AS hospital_name,
-    x.waiting_labor,
-    x.normal_delivery,
-    x.cesarean_delivery,
-    x.abortion,
-    x.not_delivery,
-    x.total_case
-FROM
-(
-    SELECT
-        CASE
-            WHEN pa.labour_hospcode REGEXP '[0-9]{5}$'
-            THEN RIGHT(pa.labour_hospcode,5)
-            ELSE 'ไม่ระบุ'
-        END AS hospcode,
+  const showQueryModal = async () => {
+    MySwal.fire({
+      title: 'กำลังโหลด...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
-        SUM(CASE WHEN pa.labor_status_id = 1 AND pa.discharge = 'N' THEN 1 ELSE 0 END) AS waiting_labor,
-        SUM(CASE WHEN pa.labor_status_id = 2 AND pa.labour_type_id = 1 AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE() THEN 1 ELSE 0 END) AS normal_delivery,
-        SUM(CASE WHEN pa.labor_status_id = 2 AND pa.labour_type_id = 2 AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE() THEN 1 ELSE 0 END) AS cesarean_delivery,
-        SUM(CASE WHEN pa.labor_status_id = 3 AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE() THEN 1 ELSE 0 END) AS abortion,
-        SUM(CASE WHEN pa.labor_status_id = 4 AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE() THEN 1 ELSE 0 END) AS not_delivery,
-        SUM(CASE WHEN pa.labor_status_id = 1 AND pa.discharge = 'N' THEN 1 ELSE 0 END) +
-        SUM(CASE WHEN pa.labor_status_id IN (2,3,4) AND pa.labor_date BETWEEN CONCAT(YEAR(CURDATE()) - IF(MONTH(CURDATE()) >= 10, 0, 1), '-10-01') AND CURDATE() THEN 1 ELSE 0 END) AS total_case
-
-    FROM person_anc pa
-    GROUP BY
-        CASE
-            WHEN pa.labour_hospcode REGEXP '[0-9]{5}$'
-            THEN RIGHT(pa.labour_hospcode,5)
-            ELSE 'ไม่ระบุ'
-        END
-) x
-LEFT JOIN dbhospital h ON h.idhospital = x.hospcode
-WHERE x.total_case > 0
-ORDER BY x.total_case DESC;`;
+    let sqlQuery = 'ไม่สามารถดึงคำสั่ง SQL ได้';
+    try {
+      const res = await fetch('/api/sql-script?type=sync_lr');
+      const data = await res.json();
+      if (data.sql) sqlQuery = data.sql;
+    } catch (error) {
+      console.error(error);
+    }
+    
+    MySwal.close();
 
     MySwal.fire({
-      title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query</span></div>',
+      title: '<div class="flex items-center gap-2 justify-center"><span class="px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold tracking-wide">HIS</span> <span class="text-sm font-bold text-slate-700">Database Query (lr.sql)</span></div>',
       html: `
         <div class="relative mt-2 text-left bg-slate-900 rounded-md overflow-hidden border border-slate-700 shadow-xl">
           <div class="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
@@ -322,7 +301,7 @@ ORDER BY x.total_case DESC;`;
             </button>
           </div>
           <div class="p-4 overflow-x-auto">
-            <pre class="text-xs text-teal-300 font-mono leading-relaxed m-0">${sqlQuery}</pre>
+            <pre class="text-xs text-teal-300 font-mono leading-relaxed m-0">${sqlQuery.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
           </div>
         </div>
       `,
