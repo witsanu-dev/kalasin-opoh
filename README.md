@@ -47,21 +47,21 @@ cp .env.example .env
 เปิดไฟล์ `.env` ด้วย Text Editor และตั้งค่ารหัสสถานพยาบาล และการเชื่อมต่อ HOSxP:
 ```ini
 APP_PORT=46
-NEXT_PUBLIC_HOSPITAL_NAME=KAMALASAI
-NEXT_PUBLIC_HOSPITAL_CODE=11078
-NEXT_PUBLIC_HOSPITAL_FULL_NAME=โรงพยาบาลกมลาไสย
-API_KEY=OPOHK@malasai11078
+NEXT_PUBLIC_HOSPITAL_NAME=YOUR_HOSPITAL_NAME
+NEXT_PUBLIC_HOSPITAL_CODE=YOUR_HOSPITAL_CODE
+NEXT_PUBLIC_HOSPITAL_FULL_NAME=โรงพยาบาลของคุณ
+API_KEY=your_secure_api_key_here
 
 LOCAL_DB_HOST=127.0.0.1
 LOCAL_DB_PORT=3306
 LOCAL_DB_USER=root
-LOCAL_DB_PASSWORD=password
+LOCAL_DB_PASSWORD=your_local_password
 LOCAL_DB_NAME=db_opoh
 
-HOSXP_DB_HOST=10.250.100.200
+HOSXP_DB_HOST=192.168.x.x
 HOSXP_DB_PORT=3306
-HOSXP_DB_USER=select
-HOSXP_DB_PASSWORD=select@11078
+HOSXP_DB_USER=sa
+HOSXP_DB_PASSWORD=your_hosxp_password
 HOSXP_DB_NAME=hos
 ```
 
@@ -121,7 +121,7 @@ npm start
 
 ## 📂 โครงสร้างฐานข้อมูล
 โปรเจกต์นี้ใช้โครงสร้างฐานข้อมูล MySQL (MariaDB) สำหรับเก็บการตั้งค่าภายใน โดยมีสคริปต์เตรียมพร้อมอยู่ที่:
-- `docker/init.sql` : สคริปต์สร้างฐานข้อมูลและเพิ่มบัญชี Admin အตโนมัติเมื่อรัน Docker ครั้งแรก
+- `docker/init.sql` : สคริปต์สร้างฐานข้อมูลและเพิ่มบัญชี Admin อัตโนมัติเมื่อรัน Docker ครั้งแรก
 - ข้อมูล SQL เบื้องต้นสำหรับคิวรี HOSxP จะถูกกำหนดให้ดึงค่าอัตโนมัติผ่านระบบ Web UI
 
 ---
