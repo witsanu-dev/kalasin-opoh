@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-import { Loader2, Send, RefreshCw, Key, Server, CheckCircle2, AlertCircle, Copy, Check, Globe } from 'lucide-react';
+import { Loader2, Send, RefreshCw, Key, Server, CheckCircle2, AlertCircle, Copy, Check, Globe, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const MySwal = withReactContent(Swal);
