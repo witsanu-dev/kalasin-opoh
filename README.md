@@ -46,15 +46,44 @@ cp .env.example .env
 ```
 เปิดไฟล์ `.env` ด้วย Text Editor และตั้งค่ารหัสสถานพยาบาล และการเชื่อมต่อ HOSxP:
 ```ini
+# พอร์ตสำหรับรันโปรแกรมหน้าเว็บ (พอร์ตเริ่มต้นคือ 46)
+APP_PORT=46
+
+# ชื่อย่อและรหัสโรงพยาบาลสำหรับแสดงบนระบบ
 NEXT_PUBLIC_HOSPITAL_NAME=KALASIN
 NEXT_PUBLIC_HOSPITAL_CODE=11078
 NEXT_PUBLIC_HOSPITAL_FULL_NAME=โรงพยาบาลกมลาไสย
 
-# ข้อมูลการเชื่อมต่อฐานข้อมูล HOSxP (สำคัญ)
+# รหัสยืนยันตัวตนสำหรับให้ สสจ. ดึงข้อมูล (API Key)
+API_KEY=your_secure_api_key_here
+
+# ==========================================
+# 1. การเชื่อมต่อฐานข้อมูล HOSxP (แหล่งดึงข้อมูล)
+# ==========================================
 HOSXP_DB_HOST=192.168.x.x
+HOSXP_DB_PORT=3306
 HOSXP_DB_USER=sa
-HOSXP_DB_PASSWORD=your_password
+HOSXP_DB_PASSWORD=your_hosxp_password
 HOSXP_DB_NAME=hos
+
+# ==========================================
+# 2. การเชื่อมต่อฐานข้อมูล Local ภายในระบบ OPOH
+# (สำหรับผู้ที่ติดตั้งแบบ Docker ไม่จำเป็นต้องแก้ไขส่วนนี้)
+# ==========================================
+LOCAL_DB_HOST=opoh-db
+LOCAL_DB_PORT=3306
+LOCAL_DB_USER=opoh_user
+LOCAL_DB_PASSWORD=opoh_secure_password
+LOCAL_DB_NAME=db_opoh
+
+# ==========================================
+# 3. รหัสผ่านตั้งต้นสำหรับสร้าง Local MySQL ใน Docker
+# (หากจะแก้ไข ต้องแก้ไขก่อนรัน docker-compose up ครั้งแรก)
+# ==========================================
+MYSQL_ROOT_PASSWORD=opoh_root_password
+MYSQL_DATABASE=db_opoh
+MYSQL_USER=opoh_user
+MYSQL_PASSWORD=opoh_secure_password
 ```
 
 ### 3. รันระบบด้วย Docker (Deploy)
