@@ -233,7 +233,7 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
 
   if (!isOpen) return null;
 
-  const currentTestResult = activeTab !== 'system' ? testResults[activeTab] : { status: 'idle' };
+  const currentTestResult: TestResult = activeTab !== 'system' ? testResults[activeTab] : { status: 'idle' };
 
   return (
     <div className="fixed inset-0 z-[1050] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
