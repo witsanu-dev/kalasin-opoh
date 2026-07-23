@@ -74,10 +74,21 @@ export function MainDashboard() {
     try {
       setLoading(true);
       const res = await fetch("/api/overview");
-      const json = await res.json();
-      if (json.success && json.data) {
-        setData(json.data);
-        return json.data;
+      
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return null;
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setData(json.data);
+          return json.data;
+        }
+      } else {
+        console.error("Received non-JSON response from API");
       }
     } catch (error) {
       console.error("Error fetching overview data:", error);
@@ -90,16 +101,23 @@ export function MainDashboard() {
   const handleSync = async (isSilent = false) => {
     try {
       if (!isSilent) setSyncing(true);
-      // Sync beds, OR, and LR concurrently
       const [resBeds, resOr, resLr] = await Promise.all([
         fetch("/api/sync/beds", { method: "POST" }),
         fetch("/api/sync/or", { method: "POST" }),
         fetch("/api/sync/lr", { method: "POST" })
       ]);
       
-      const jsonBeds = await resBeds.json();
-      const jsonOr = await resOr.json();
-      const jsonLr = await resLr.json();
+      if (resBeds.status === 401 || resOr.status === 401 || resLr.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Check content-type to avoid HTML parse errors
+      const isJson = (res: Response) => res.headers.get("content-type")?.includes("application/json");
+      
+      const jsonBeds = isJson(resBeds) ? await resBeds.json() : { success: false };
+      const jsonOr = isJson(resOr) ? await resOr.json() : { success: false };
+      const jsonLr = isJson(resLr) ? await resLr.json() : { success: false };
       
       if (jsonBeds.success && jsonOr.success && jsonLr.success) {
         if (!isSilent) {

@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, User, Lock, Loader2, Hospital, Activity, Terminal } from 'lucide-react';
+import { ShieldCheck, User, Lock, Loader2, Hospital, Activity, Terminal, Database } from 'lucide-react';
 import Swal from 'sweetalert2';
+import DatabaseConfigModal from '@/components/DatabaseConfigModal';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -241,8 +243,23 @@ export default function LoginPage() {
           <div className="mt-6 text-[10px] font-bold tracking-widest text-slate-300 uppercase">
             © {new Date().getFullYear()} • VERSION 69.6.1.19
           </div>
+          
+          <div className="mt-4">
+            <button 
+              onClick={() => setIsConfigModalOpen(true)}
+              className="text-slate-300 hover:text-teal-600 transition-colors flex items-center justify-center p-2 rounded-full hover:bg-teal-50"
+              title="ตั้งค่าฐานข้อมูล"
+            >
+              <Database className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
+
+      <DatabaseConfigModal 
+        isOpen={isConfigModalOpen} 
+        onClose={() => setIsConfigModalOpen(false)} 
+      />
     </div>
   );
 }

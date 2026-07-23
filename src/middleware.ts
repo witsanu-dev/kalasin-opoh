@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { decrypt } from '@/lib/auth';
 
 // Paths that do not require authentication
-const publicPaths = ['/login', '/api/auth/login'];
+const publicPaths = ['/login', '/api/auth/login', '/api/db-config', '/api/db-config/test', '/api/db-schema'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,7 +22,9 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
 
   if (!sessionCookie) {
-    // No session found, redirect to login
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
@@ -32,10 +34,14 @@ export async function middleware(request: NextRequest) {
   const payload = await decrypt(sessionCookie);
 
   if (!payload) {
-    // Invalid or expired session, redirect to login
+    // Invalid or expired session
+    if (pathname.startsWith('/api/')) {
+      const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      response.cookies.delete('session');
+      return response;
+    }
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    // Clear the invalid cookie
     const response = NextResponse.redirect(url);
     response.cookies.delete('session');
     return response;

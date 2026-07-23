@@ -31,6 +31,8 @@ services:
         condition: service_healthy
     networks:
       - opoh_network
+    volumes:
+      - ./.env:/app/.env
 
   opoh-db:
     image: mariadb:10.11
@@ -43,7 +45,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-opoh_secure_password}
     volumes:
       - opoh_mysql_data:/var/lib/mysql
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/db_opoh.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
       interval: 10s

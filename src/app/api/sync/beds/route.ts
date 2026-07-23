@@ -25,6 +25,10 @@ export async function POST(request: Request) {
       return bangkokTime.toISOString().replace('T', ' ').replace('Z', '');
     };
     const nowStr = getBangkokTime();
+    const hospitalCode = process.env.NEXT_PUBLIC_HOSPITAL_CODE || '11078';
+
+    // Remove stale wards that might have an old or empty hospital_code
+    await localDb.query('DELETE FROM bed_management_summary WHERE hospital_code != ?', [hospitalCode]);
 
     for (const row of rows) {
       const {
@@ -40,9 +44,10 @@ export async function POST(request: Request) {
 
       const upsertQuery = `
         INSERT INTO bed_management_summary 
-        (ward_code, ward_name, total_bed, occupied_bed, available_bed, occupancy_rate, export_code, is_icu, last_sync_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (hospital_code, ward_code, ward_name, total_bed, occupied_bed, available_bed, occupancy_rate, export_code, is_icu, last_sync_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
+        hospital_code = VALUES(hospital_code),
         ward_name = VALUES(ward_name),
         total_bed = VALUES(total_bed),
         occupied_bed = VALUES(occupied_bed),
@@ -54,6 +59,7 @@ export async function POST(request: Request) {
       `;
 
       await localDb.query(upsertQuery, [
+        hospitalCode,
         ward,
         ward_name,
         total_bed,
