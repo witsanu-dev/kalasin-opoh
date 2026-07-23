@@ -11,7 +11,7 @@
  Target Server Version : 80017 (8.0.17)
  File Encoding         : 65001
 
- Date: 06/07/2026 02:38:48
+ Date: 24/07/2026 06:29:27
 */
 
 SET NAMES utf8mb4;
@@ -31,7 +31,7 @@ CREATE TABLE `api_keys`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `api_keys_hospital_code_key`(`hospital_code` ASC) USING BTREE,
   UNIQUE INDEX `api_keys_api_key_key`(`api_key` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of api_keys
@@ -56,7 +56,7 @@ CREATE TABLE `bed_management_summary`  (
   `is_icu` tinyint(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `bed_management_summary_hospital_code_ward_code_key`(`hospital_code` ASC, `ward_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1941 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 511 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of bed_management_summary
@@ -117,7 +117,7 @@ CREATE TABLE `lr_management_summary`  (
   `last_sync_at` datetime(3) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `lr_management_summary_hospital_code_key`(`hospital_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 316 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 94 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of lr_management_summary
@@ -140,7 +140,7 @@ CREATE TABLE `or_management_summary`  (
   `last_sync_at` datetime(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `or_management_summary_hospital_code_key`(`hospital_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 121 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 38 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of or_management_summary
@@ -173,7 +173,7 @@ CREATE TABLE `users`  (
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, '9999999999999', 'admin', '$2b$10$YPMNVB6K8fODQc6kTG0/Q.y0.7NhmycGy2OO2z9qbZiVhLAdqTYIC', 'ผู้ดูแลระบบ', '', NULL, NULL, 'ADMIN', 1, '2026-07-06 02:23:37.000', '2026-07-06 01:34:34.106', '2026-07-06 01:34:34.000', '00033');
+INSERT INTO `users` VALUES (1, '9999999999999', 'admin', '$2b$10$YPMNVB6K8fODQc6kTG0/Q.y0.7NhmycGy2OO2z9qbZiVhLAdqTYIC', 'ผู้ดูแลระบบ', '', NULL, NULL, 'ADMIN', 1, '2026-07-24 00:17:00.000', '2026-07-06 01:34:34.106', '2026-07-06 01:34:34.000', '00033');
 
 -- ----------------------------
 -- Table structure for waiting_or_summary
@@ -192,7 +192,7 @@ CREATE TABLE `waiting_or_summary`  (
   `last_sync_at` datetime(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `waiting_or_summary_hospital_code_key`(`hospital_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of waiting_or_summary
