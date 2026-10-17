@@ -243,7 +243,6 @@ export async function POST(req: Request) {
             auth_source: 'HOSXP',
             groupname: hUser.groupname || '',
             department: hUser.opduser_department || '',
-            accessright: hUser.accessright || '',
           };
           authSource = 'HOSxP';
         }
