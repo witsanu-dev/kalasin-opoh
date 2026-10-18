@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
+import { resolveDbHost } from '@/lib/db/host-resolver';
 
 export async function POST(req: Request) {
   try {
@@ -12,9 +13,10 @@ export async function POST(req: Request) {
       );
     }
 
+    const effectiveHost = resolveDbHost(host);
     const connection = await mysql.createConnection({
-      host: host,
-      port: Number(port),
+      host: effectiveHost,
+      port: Number(port) || 3306,
       user: user,
       password: password || '',
       database: database,

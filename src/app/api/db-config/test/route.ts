@@ -15,14 +15,14 @@ export async function GET() {
       await Promise.race([hosxpDb.query('SELECT 1'), timeoutPromise(3000)]);
       return {
         online: true,
-        host: process.env.HOSXP_DB_HOST || '10.250.100.200',
-        database: process.env.HOSXP_DB_NAME || 'hos'
+        host: process.env.HOSXP_DB_HOST || '',
+        database: process.env.HOSXP_DB_NAME || ''
       };
     } catch (e: any) {
       return {
         online: false,
-        host: process.env.HOSXP_DB_HOST || '10.250.100.200',
-        database: process.env.HOSXP_DB_NAME || 'hos',
+        host: process.env.HOSXP_DB_HOST || '',
+        database: process.env.HOSXP_DB_NAME || '',
         error: e.message
       };
     }
@@ -33,14 +33,14 @@ export async function GET() {
       await Promise.race([localDb.query('SELECT 1'), timeoutPromise(3000)]);
       return {
         online: true,
-        host: process.env.LOCAL_DB_HOST || '127.0.0.1',
-        database: process.env.LOCAL_DB_NAME || 'db_opoh'
+        host: process.env.LOCAL_DB_HOST || '',
+        database: process.env.LOCAL_DB_NAME || ''
       };
     } catch (e: any) {
       return {
         online: false,
-        host: process.env.LOCAL_DB_HOST || '127.0.0.1',
-        database: process.env.LOCAL_DB_NAME || 'db_opoh',
+        host: process.env.LOCAL_DB_HOST || '',
+        database: process.env.LOCAL_DB_NAME || '',
         error: e.message
       };
     }
