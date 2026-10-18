@@ -14,12 +14,20 @@ export async function GET() {
 
     // 1. Try reading .env
     try {
-      envContent = await fs.readFile(ENV_PATH, 'utf-8');
+      const stat = await fs.stat(ENV_PATH);
+      if (stat.isFile()) {
+        envContent = await fs.readFile(ENV_PATH, 'utf-8');
+      } else {
+        throw new Error('.env is a directory');
+      }
     } catch (e) {
-      // 2. If .env does not exist, fall back to .env.example
+      // 2. If .env does not exist or is a directory, fall back to .env.example
       try {
-        envContent = await fs.readFile(ENV_EXAMPLE_PATH, 'utf-8');
-        isFromExample = true;
+        const exStat = await fs.stat(ENV_EXAMPLE_PATH);
+        if (exStat.isFile()) {
+          envContent = await fs.readFile(ENV_EXAMPLE_PATH, 'utf-8');
+          isFromExample = true;
+        }
       } catch (err) {
         // Neither exists
       }
@@ -52,42 +60,40 @@ export async function GET() {
         hospitalFullName: parseEnv('NEXT_PUBLIC_HOSPITAL_FULL_NAME', 'โรงพยาบาลกมลาไสย'),
         apiKey: parseEnv('API_KEY', ''),
         opohBaseUrl: parseEnv('OPOH_BASE_URL', 'https://appksn.moph.go.th/opoh/api/v1'),
-        appPort: parseEnv('APP_PORT', '46'),
+        appPort: parseEnv('APP_PORT', '3000'),
       },
       source: isFromExample ? 'example' : (envContent ? 'env' : 'defaults')
     };
 
-    // Try reading backup config from localDb if .env is missing or empty
-    if (!envContent || isFromExample) {
-      try {
-        const [rows] = await localDb.query(
-          'SELECT config_key, config_value FROM system_config'
-        ) as [any[], any];
+    // Try reading backup/overridden config from localDb system_config table
+    try {
+      const [rows] = await localDb.query(
+        'SELECT config_key, config_value FROM system_config'
+      ) as [any[], any];
 
-        if (Array.isArray(rows) && rows.length > 0) {
-          const dbMap = new Map<string, string>();
-          for (const row of rows) {
-            dbMap.set(row.config_key, row.config_value);
-          }
-
-          if (dbMap.has('HOSXP_DB_HOST')) config.hosxp.host = dbMap.get('HOSXP_DB_HOST')!;
-          if (dbMap.has('HOSXP_DB_PORT')) config.hosxp.port = dbMap.get('HOSXP_DB_PORT')!;
-          if (dbMap.has('HOSXP_DB_USER')) config.hosxp.user = dbMap.get('HOSXP_DB_USER')!;
-          if (dbMap.has('HOSXP_DB_NAME')) config.hosxp.database = dbMap.get('HOSXP_DB_NAME')!;
-          if (dbMap.has('LOCAL_DB_HOST')) config.local.host = dbMap.get('LOCAL_DB_HOST')!;
-          if (dbMap.has('LOCAL_DB_PORT')) config.local.port = dbMap.get('LOCAL_DB_PORT')!;
-          if (dbMap.has('LOCAL_DB_USER')) config.local.user = dbMap.get('LOCAL_DB_USER')!;
-          if (dbMap.has('LOCAL_DB_NAME')) config.local.database = dbMap.get('LOCAL_DB_NAME')!;
-          if (dbMap.has('NEXT_PUBLIC_HOSPITAL_CODE')) config.system.hospitalCode = dbMap.get('NEXT_PUBLIC_HOSPITAL_CODE')!;
-          if (dbMap.has('NEXT_PUBLIC_HOSPITAL_NAME')) config.system.hospitalName = dbMap.get('NEXT_PUBLIC_HOSPITAL_NAME')!;
-          if (dbMap.has('NEXT_PUBLIC_HOSPITAL_FULL_NAME')) config.system.hospitalFullName = dbMap.get('NEXT_PUBLIC_HOSPITAL_FULL_NAME')!;
-          if (dbMap.has('API_KEY')) config.system.apiKey = dbMap.get('API_KEY')!;
-          if (dbMap.has('OPOH_BASE_URL')) config.system.opohBaseUrl = dbMap.get('OPOH_BASE_URL')!;
-          if (dbMap.has('APP_PORT')) config.system.appPort = dbMap.get('APP_PORT')!;
+      if (Array.isArray(rows) && rows.length > 0) {
+        const dbMap = new Map<string, string>();
+        for (const row of rows) {
+          dbMap.set(row.config_key, row.config_value);
         }
-      } catch (dbErr) {
-        // Table or connection not ready, ignore
+
+        if (dbMap.has('HOSXP_DB_HOST')) config.hosxp.host = dbMap.get('HOSXP_DB_HOST')!;
+        if (dbMap.has('HOSXP_DB_PORT')) config.hosxp.port = dbMap.get('HOSXP_DB_PORT')!;
+        if (dbMap.has('HOSXP_DB_USER')) config.hosxp.user = dbMap.get('HOSXP_DB_USER')!;
+        if (dbMap.has('HOSXP_DB_NAME')) config.hosxp.database = dbMap.get('HOSXP_DB_NAME')!;
+        if (dbMap.has('LOCAL_DB_HOST')) config.local.host = dbMap.get('LOCAL_DB_HOST')!;
+        if (dbMap.has('LOCAL_DB_PORT')) config.local.port = dbMap.get('LOCAL_DB_PORT')!;
+        if (dbMap.has('LOCAL_DB_USER')) config.local.user = dbMap.get('LOCAL_DB_USER')!;
+        if (dbMap.has('LOCAL_DB_NAME')) config.local.database = dbMap.get('LOCAL_DB_NAME')!;
+        if (dbMap.has('NEXT_PUBLIC_HOSPITAL_CODE')) config.system.hospitalCode = dbMap.get('NEXT_PUBLIC_HOSPITAL_CODE')!;
+        if (dbMap.has('NEXT_PUBLIC_HOSPITAL_NAME')) config.system.hospitalName = dbMap.get('NEXT_PUBLIC_HOSPITAL_NAME')!;
+        if (dbMap.has('NEXT_PUBLIC_HOSPITAL_FULL_NAME')) config.system.hospitalFullName = dbMap.get('NEXT_PUBLIC_HOSPITAL_FULL_NAME')!;
+        if (dbMap.has('API_KEY')) config.system.apiKey = dbMap.get('API_KEY')!;
+        if (dbMap.has('OPOH_BASE_URL')) config.system.opohBaseUrl = dbMap.get('OPOH_BASE_URL')!;
+        if (dbMap.has('APP_PORT')) config.system.appPort = dbMap.get('APP_PORT')!;
       }
+    } catch (dbErr) {
+      // Table or connection not ready, ignore
     }
 
     return NextResponse.json(config);
@@ -103,11 +109,21 @@ export async function POST(req: Request) {
 
     let envContent = '';
     try {
-      envContent = await fs.readFile(ENV_PATH, 'utf-8');
+      const stat = await fs.stat(ENV_PATH);
+      if (stat.isFile()) {
+        envContent = await fs.readFile(ENV_PATH, 'utf-8');
+      } else {
+        throw new Error('.env is not a file');
+      }
     } catch (e) {
       // If .env doesn't exist, try starting from .env.example
       try {
-        envContent = await fs.readFile(ENV_EXAMPLE_PATH, 'utf-8');
+        const exStat = await fs.stat(ENV_EXAMPLE_PATH);
+        if (exStat.isFile()) {
+          envContent = await fs.readFile(ENV_EXAMPLE_PATH, 'utf-8');
+        } else {
+          throw new Error('.env.example is not a file');
+        }
       } catch (err) {
         envContent = `#==========================================\n# OPOH SYNC SYSTEM CONFIGURATION\n#==========================================\n`;
       }
@@ -163,8 +179,15 @@ export async function POST(req: Request) {
     // Clean up excessive blank lines
     envContent = envContent.replace(/\n{3,}/g, '\n\n').trim() + '\n';
 
-    // Persist to .env
-    await fs.writeFile(ENV_PATH, envContent, 'utf-8');
+    // Persist to .env (if writable file)
+    try {
+      const stat = await fs.stat(ENV_PATH).catch(() => null);
+      if (!stat || stat.isFile()) {
+        await fs.writeFile(ENV_PATH, envContent, 'utf-8');
+      }
+    } catch (writeErr) {
+      console.warn('Could not write to .env file (persisting via database system_config instead):', writeErr);
+    }
 
     // Hot-reload dynamic connection pools in memory
     if (config.hosxp) {

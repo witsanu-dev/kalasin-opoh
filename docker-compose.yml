@@ -5,23 +5,32 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_HOSPITAL_NAME=${NEXT_PUBLIC_HOSPITAL_NAME:-KALASIN}
+        - NEXT_PUBLIC_HOSPITAL_CODE=${NEXT_PUBLIC_HOSPITAL_CODE:-11078}
+        - NEXT_PUBLIC_HOSPITAL_FULL_NAME=${NEXT_PUBLIC_HOSPITAL_FULL_NAME:-โรงพยาบาลกมลาไสย}
     image: opoh-kalasin:latest
     container_name: opoh_web
     restart: always
     ports:
-      - "${APP_PORT:-46}:3000"
+      - "${APP_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_HOSPITAL_NAME=${NEXT_PUBLIC_HOSPITAL_NAME:-KALASIN}
-      - NEXT_PUBLIC_HOSPITAL_CODE=${NEXT_PUBLIC_HOSPITAL_CODE}
-      - NEXT_PUBLIC_HOSPITAL_FULL_NAME=${NEXT_PUBLIC_HOSPITAL_FULL_NAME}
+      - NEXT_PUBLIC_HOSPITAL_CODE=${NEXT_PUBLIC_HOSPITAL_CODE:-11078}
+      - NEXT_PUBLIC_HOSPITAL_FULL_NAME=${NEXT_PUBLIC_HOSPITAL_FULL_NAME:-โรงพยาบาลกมลาไสย}
+      - OPOH_BASE_URL=${OPOH_BASE_URL:-https://appksn.moph.go.th/opoh/api/v1}
       - API_KEY=${API_KEY}
-      - HOSXP_DB_HOST=${HOSXP_DB_HOST}
+      - JWT_SECRET=${JWT_SECRET:-opoh_jwt_secret_key_change_me_in_production}
+      - ADMIN_USERNAMES=${ADMIN_USERNAMES:-admin,sa,bmsadmin,ict,it,witsanu.ict}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - HOSXP_DB_HOST=${HOSXP_DB_HOST:-host.docker.internal}
       - HOSXP_DB_PORT=${HOSXP_DB_PORT:-3306}
-      - HOSXP_DB_USER=${HOSXP_DB_USER}
+      - HOSXP_DB_USER=${HOSXP_DB_USER:-sa}
       - HOSXP_DB_PASSWORD=${HOSXP_DB_PASSWORD}
       - HOSXP_DB_NAME=${HOSXP_DB_NAME:-hos}
-      - LOCAL_DB_HOST=${LOCAL_DB_HOST:-opoh-db}
+      - HOSXP_DB_CHARSET=${HOSXP_DB_CHARSET:-utf8mb4}
+      - LOCAL_DB_HOST=${DOCKER_LOCAL_DB_HOST:-opoh-db}
       - LOCAL_DB_PORT=${LOCAL_DB_PORT:-3306}
       - LOCAL_DB_USER=${LOCAL_DB_USER:-opoh_user}
       - LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD:-opoh_secure_password}
@@ -29,10 +38,10 @@ services:
     depends_on:
       opoh-db:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - opoh_network
-    volumes:
-      - ./.env:/app/.env
 
   opoh-db:
     image: mariadb:10.11
@@ -43,6 +52,8 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE:-db_opoh}
       - MYSQL_USER=${MYSQL_USER:-opoh_user}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-opoh_secure_password}
+    ports:
+      - "${LOCAL_DB_PORT_MAP:-3307}:3306"
     volumes:
       - opoh_mysql_data:/var/lib/mysql
       - ./database/db_opoh.sql:/docker-entrypoint-initdb.d/init.sql

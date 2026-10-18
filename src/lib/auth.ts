@@ -59,6 +59,18 @@ export async function encryptMfaToken(payload: SessionPayload) {
     .sign(encodedSecret);
 }
 
+/**
+ * Determines whether cookies should have the Secure flag.
+ * - If COOKIE_SECURE is explicitly 'true', returns true.
+ * - If COOKIE_SECURE is explicitly 'false', returns false (allowing plain HTTP on hospital LAN).
+ * - Otherwise defaults to true only in production.
+ */
+export function isCookieSecure(): boolean {
+  if (process.env.COOKIE_SECURE === 'true') return true;
+  if (process.env.COOKIE_SECURE === 'false') return false;
+  return process.env.NODE_ENV === 'production';
+}
+
 export async function decryptMfaToken(token: string) {
   if (!token) return null;
   try {

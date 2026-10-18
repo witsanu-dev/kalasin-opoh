@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import hosxpDb from '@/lib/db/hosxp';
 import localDb from '@/lib/db/local';
-import { encrypt, encryptMfaToken, SessionPayload } from '@/lib/auth';
+import { encrypt, encryptMfaToken, isCookieSecure, SessionPayload } from '@/lib/auth';
 import { getUserMfaStatus } from '@/lib/mfa';
 import { cookies } from 'next/headers';
 
@@ -329,7 +329,7 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     cookieStore.set('session', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isCookieSecure(),
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day

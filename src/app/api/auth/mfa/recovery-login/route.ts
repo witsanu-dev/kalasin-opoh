@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { decryptMfaToken, encrypt } from '@/lib/auth';
+import { decryptMfaToken, encrypt, isCookieSecure } from '@/lib/auth';
 import { verifyAndConsumeRecoveryCode } from '@/lib/mfa';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     cookieStore.set('session', fullSessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isCookieSecure(),
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day

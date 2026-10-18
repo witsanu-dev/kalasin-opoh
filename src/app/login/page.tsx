@@ -304,10 +304,10 @@ export default function LoginPage() {
                     <div className="mt-2 p-2.5 bg-amber-50/80 border border-amber-200/90 rounded-md text-[11px] text-amber-900 space-y-1">
                       <p className="font-semibold flex items-center gap-1 text-amber-800">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
-                        หากไม่มีรหัสกู้คืน หรือเผลอลบแอป:
+                        หากไม่มีรหัสกู้คืนและไม่สามารถรับ OTP ได้
                       </p>
                       <p className="text-amber-700 leading-relaxed">
-                        โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อทำรายการ <b>"รีเซ็ต MFA"</b> ให้ที่หน้าเมนูตั้งค่าระบบ
+                        โปรดติดต่อผู้ดูแลระบบเพื่อทำรายการ <b>รีเซ็ต MFA</b>
                       </p>
                     </div>
                   </form>
@@ -458,8 +458,8 @@ export default function LoginPage() {
             </>
           )}
 
-            {/* Provider ID SSO Button (Hidden temporarily as requested) */}
-            {/*
+          {/* Provider ID SSO Button (Hidden temporarily as requested) */}
+          {/*
             <div className="relative mt-6 mb-2 pt-2">
               <div className="absolute inset-0 flex items-center mt-2">
                 <div className="w-full border-t border-slate-200"></div>

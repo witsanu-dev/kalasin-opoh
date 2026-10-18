@@ -13,7 +13,7 @@ const publicPaths = [
   '/api/db-schema'
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow access to public paths, external OPOH endpoints, and static assets

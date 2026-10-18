@@ -18,6 +18,12 @@ COPY . .
 
 # Environment variables must be present at build time
 # https://nextjs.org/docs/api-reference/next.config.js/environment-variables
+ARG NEXT_PUBLIC_HOSPITAL_NAME
+ARG NEXT_PUBLIC_HOSPITAL_CODE
+ARG NEXT_PUBLIC_HOSPITAL_FULL_NAME
+ENV NEXT_PUBLIC_HOSPITAL_NAME=$NEXT_PUBLIC_HOSPITAL_NAME
+ENV NEXT_PUBLIC_HOSPITAL_CODE=$NEXT_PUBLIC_HOSPITAL_CODE
+ENV NEXT_PUBLIC_HOSPITAL_FULL_NAME=$NEXT_PUBLIC_HOSPITAL_FULL_NAME
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Build Next.js
@@ -37,14 +43,15 @@ COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
+RUN chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# We run as root to allow writing to the host-mounted .env file
-# USER nextjs
+# Switch to non-root user for security
+USER nextjs
 
 EXPOSE 3000
 

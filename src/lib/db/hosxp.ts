@@ -50,6 +50,7 @@ const initialConfig = {
   user: process.env.HOSXP_DB_USER || 'select',
   password: process.env.HOSXP_DB_PASSWORD || 'select',
   database: process.env.HOSXP_DB_NAME || 'hosxp',
+  charset: process.env.HOSXP_DB_CHARSET || 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { isCookieSecure } from '@/lib/auth';
 
 export async function POST() {
   try {
@@ -7,7 +8,7 @@ export async function POST() {
     // Clear the session cookie
     cookieStore.set('session', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isCookieSecure(),
       sameSite: 'lax',
       path: '/',
       maxAge: 0, // Expire immediately
