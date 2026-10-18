@@ -194,12 +194,13 @@ pm2 startup
 
 1. เปิดไปที่หน้า Login: `http://localhost:3000/login`
 2. คลิกที่ **ไอคอนรูปฐานข้อมูล (Database Icon)** บริเวณมุมล่างของหน้าจอ
-3. กรอกข้อมูล Host, Port, User, Password ของ HOSxP และ Local Database
+3. กรอกข้อมูล Host, Port, User, Password ของ HOSxP และ Local Database:
+   - **ฐานข้อมูลระบบ (Local DB):** รองรับทั้ง Container ภายใน (`opoh-db:3306`), **AppServ**, **XAMPP** หรือ MySQL/MariaDB ในเครื่องแม่ข่าย (สามารถระบุ `127.0.0.1` หรือ `localhost` และ Port เช่น `3306` หรือพอร์ตอื่นๆ ได้ทันที ระบบ Docker มี Smart Gateway Map เข้าเครื่อง Host ให้อัตโนมัติ พร้อมปุ่มเลือก Preset 1-Click)
 4. กดปุ่ม **"ทดสอบการเชื่อมต่อ" (Ping & Deep Check):**
    - ระบบจะทดสอบทั้ง Network Ping และตรวจสอบความพร้อมของตารางหลัก (`opduser`, `officer`, `doctor`, `ward`)
 5. กดปุ่ม **"บันทึกการตั้งค่า":**
-   - ระบบจะทำการ **Hot-Reload In-Memory Connection Pool** ทันที และบันทึกลงฐานข้อมูล `system_config`
-   - **ผู้ใช้งานสามารถเข้าสู่ระบบด้วยบัญชี HOSxP ได้ทันทีโดยไม่ต้อง Restart Server หรือ Container**
+   - ระบบจะทำการ **Hot-Reload In-Memory Connection Pool** ทันที และบันทึกลงฐานข้อมูล `system_config` รวมถึงไฟล์ `.env`
+   - **ผู้ใช้งานสามารถเข้าสู่ระบบและเริ่มใช้งานได้ทันทีโดยไม่ต้อง Restart Server หรือ Container**
 
 ---
 

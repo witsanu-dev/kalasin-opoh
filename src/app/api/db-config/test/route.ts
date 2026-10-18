@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
 import hosxpDb from '@/lib/db/hosxp';
 import localDb from '@/lib/db/local';
+import { resolveDbHost } from '@/lib/db/host-resolver';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,8 +79,9 @@ export async function POST(req: Request) {
     }
 
     // Try to establish a connection with the provided credentials
+    const effectiveHost = resolveDbHost(config.host);
     const connection = await mysql.createConnection({
-      host: config.host,
+      host: effectiveHost,
       port: Number(config.port) || 3306,
       user: config.user,
       password: config.password,

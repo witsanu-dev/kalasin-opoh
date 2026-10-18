@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise';
+import { resolveDbHost } from './host-resolver';
 
 class DatabaseWrapper {
   private pool: mysql.Pool;
@@ -26,9 +27,13 @@ class DatabaseWrapper {
   async updateConfig(newConfig: mysql.PoolOptions) {
     const oldPool = this.pool;
     
+    // Resolve host dynamically (e.g. 127.0.0.1 -> host.docker.internal when inside Docker)
+    const effectiveHost = resolveDbHost(newConfig.host);
+
     // Create new pool
     this.pool = mysql.createPool({
       ...newConfig,
+      host: effectiveHost,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
@@ -43,9 +48,9 @@ class DatabaseWrapper {
   }
 }
 
-// Create initial config from process.env
+// Create initial config from process.env with dynamic host resolution
 const initialConfig = {
-  host: process.env.LOCAL_DB_HOST || '127.0.0.1',
+  host: resolveDbHost(process.env.LOCAL_DB_HOST || '127.0.0.1'),
   port: Number(process.env.LOCAL_DB_PORT) || 3306,
   user: process.env.LOCAL_DB_USER || 'root',
   password: process.env.LOCAL_DB_PASSWORD || 'password',

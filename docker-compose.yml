@@ -14,13 +14,15 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
+      - IS_DOCKER=true
+      - APP_PORT=${APP_PORT:-3000}
       - NEXT_PUBLIC_HOSPITAL_NAME=${NEXT_PUBLIC_HOSPITAL_NAME:-KALASIN}
       - NEXT_PUBLIC_HOSPITAL_CODE=${NEXT_PUBLIC_HOSPITAL_CODE:-11078}
       - NEXT_PUBLIC_HOSPITAL_FULL_NAME=${NEXT_PUBLIC_HOSPITAL_FULL_NAME:-โรงพยาบาลกมลาไสย}
       - OPOH_BASE_URL=${OPOH_BASE_URL:-https://appksn.moph.go.th/opoh/api/v1}
       - API_KEY=${API_KEY}
       - JWT_SECRET=${JWT_SECRET:-opoh_jwt_secret_key_change_me_in_production}
-      - ADMIN_USERNAMES=${ADMIN_USERNAMES:-admin,sa,bmsadmin,ict,it,witsanu.ict}
+      - ADMIN_USERNAMES=${ADMIN_USERNAMES:-admin,sa,bmsadmin,ict,it}
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
       - HOSXP_DB_HOST=${HOSXP_DB_HOST:-host.docker.internal}
       - HOSXP_DB_PORT=${HOSXP_DB_PORT:-3306}
@@ -28,7 +30,7 @@ services:
       - HOSXP_DB_PASSWORD=${HOSXP_DB_PASSWORD}
       - HOSXP_DB_NAME=${HOSXP_DB_NAME:-hos}
       - HOSXP_DB_CHARSET=${HOSXP_DB_CHARSET:-utf8mb4}
-      - LOCAL_DB_HOST=${DOCKER_LOCAL_DB_HOST:-opoh-db}
+      - LOCAL_DB_HOST=${LOCAL_DB_HOST:-opoh-db}
       - LOCAL_DB_PORT=${LOCAL_DB_PORT:-3306}
       - LOCAL_DB_USER=${LOCAL_DB_USER:-opoh_user}
       - LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD:-opoh_secure_password}
@@ -47,9 +49,9 @@ services:
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-opoh_root_password}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-db_opoh}
-      - MYSQL_USER=${MYSQL_USER:-opoh_user}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-opoh_secure_password}
+      - MYSQL_DATABASE=${LOCAL_DB_NAME:-db_opoh}
+      - MYSQL_USER=${LOCAL_DB_USER:-opoh_user}
+      - MYSQL_PASSWORD=${LOCAL_DB_PASSWORD:-opoh_secure_password}
     ports:
       - "${LOCAL_DB_PORT_MAP:-3307}:3306"
     volumes:
