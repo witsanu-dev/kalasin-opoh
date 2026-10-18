@@ -170,7 +170,7 @@ pm2 startup
 ### 5.2 บัญชี Admin สำรองกรณีฉุกเฉิน (Local Emergency Admin)
 หากยังไม่ได้ต่อ HOSxP หรือระบบเครือข่ายของ HOSxP ขัดข้อง สามารถใช้บัญชีนี้เข้าจัดการระบบได้:
 - **Username:** `admin`
-- **Password:** `witsanu11078`
+- **Password:** `opoH@2026`
 
 ### 5.3 การรีเซ็ต MFA กรณีเจ้าหน้าที่ทำรหัสหาย (Emergency MFA Reset CLI)
 หากเจ้าหน้าที่ทำสมาร์ทโฟนหายหรือลบแอป Google Authenticator แอดมินสามารถปลดล็อกให้ได้ทันทีผ่าน Terminal:

@@ -209,7 +209,7 @@ pm2 startup
 ### 2. บัญชีผู้ดูแลระบบฉุกเฉินเริ่มต้น (Default Local Admin)
 หากยังไม่ได้เชื่อมต่อ HOSxP สามารถเข้าสู่ระบบด้วยบัญชี Local Admin:
 - **Username:** `admin`
-- **Password:** `witsanu11078`
+- **Password:** `opoH@2026`
 
 ### 3. ระบบยืนยันตัวตน 2 ขั้นตอน (2-Factor Authentication / TOTP)
 - รองรับ Google Authenticator, Microsoft Authenticator และแอป TOTP มาตรฐาน

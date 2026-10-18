@@ -257,7 +257,7 @@ CREATE TABLE `users`  (
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, '9999999999999', 'admin', '$2b$10$qa6b//OKP9rYVsCH09jIVed5MYztYlMZzgvXCoYhVMVD5VhNqBZ12', 'ผู้ดูแลระบบ', '', NULL, NULL, 'ADMIN', 1, '2026-10-18 03:59:56.000', '2026-07-06 01:34:34.106', '2026-07-06 01:34:34.000', '00033');
+INSERT INTO `users` VALUES (1, '9999999999999', 'admin', '$2b$10$Rudnj980dc2zqjpgNGrU5e3sukUSxs6vjjep0bc9lBK7ZCDUvl/.a', 'ผู้ดูแลระบบ', '', NULL, NULL, 'ADMIN', 1, '2026-10-18 03:59:56.000', '2026-07-06 01:34:34.106', '2026-07-06 01:34:34.000', '00033');
 
 -- ----------------------------
 -- Table structure for waiting_or_summary
