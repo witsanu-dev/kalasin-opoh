@@ -296,6 +296,18 @@ npm run reset-mfa admin
 
 ---
 
+## 👨‍💻 ผู้พัฒนาและหน่วยงานรับผิดชอบ (Developer & Maintainer)
+
+| ข้อมูล (Detail) | รายละเอียด (Description) |
+| :--- | :--- |
+| **ผู้พัฒนา (Developer)** | **นายวิษณุ ศรีโยธา** (`wITsaNU _<`) |
+| **ตำแหน่ง (Position)** | นักวิชาการคอมพิวเตอร์ |
+| **กลุ่มงาน (Department)** | กลุ่มงานสุขภาพดิจิทัล (Digital Health Department) |
+| **หน่วยงาน (Organization)** | โรงพยาบาลกมลาไสย จังหวัดกาฬสินธุ์ |
+| **สำนักงานสาธารณสุขจังหวัด** | สำนักงานสาธารณสุขจังหวัดกาฬสินธุ์ เขตสุขภาพที่ 7 กระทรวงสาธารณสุข |
+
+---
+
 <div align="center">
   <p><b>Kalasin OPOH Sync System</b> &copy; 2026 | Developed for Standard Hospital Information Systems</p>
 </div>
