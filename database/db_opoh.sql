@@ -1,5 +1,5 @@
 /*
- Navicat Premium Data Transfer
+ Navicat Premium Dump SQL
 
  Source Server         : MySQL Appserv - 127.0.0.1 3306
  Source Server Type    : MySQL
@@ -11,7 +11,7 @@
  Target Server Version : 80017 (8.0.17)
  File Encoding         : 65001
 
- Date: 24/07/2026 06:29:27
+ Date: 18/10/2026 10:14:18
 */
 
 SET NAMES utf8mb4;
@@ -56,7 +56,7 @@ CREATE TABLE `bed_management_summary`  (
   `is_icu` tinyint(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `bed_management_summary_hospital_code_ward_code_key`(`hospital_code` ASC, `ward_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 511 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of bed_management_summary
@@ -75,14 +75,14 @@ CREATE TABLE `hospitals`  (
   `updated_at` datetime(3) NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `hospitals_hospital_code_key`(`hospital_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of hospitals
 -- ----------------------------
 INSERT INTO `hospitals` VALUES (1, '10709', 'โรงพยาบาลกาฬสินธุ์', 'เมืองกาฬสินธุ์', '2026-06-17 18:23:37.880', '2026-06-17 18:23:37.880');
 INSERT INTO `hospitals` VALUES (2, '11077', 'โรงพยาบาลนามน', 'นามน', '2026-06-17 18:23:37.896', '2026-06-17 18:23:37.896');
-INSERT INTO `hospitals` VALUES (3, '11078', 'โรงพยาบาลกมลาไสย', 'กมลาไสย', '2026-06-17 18:23:37.904', '2026-06-17 18:23:37.904');
+INSERT INTO `hospitals` VALUES (3, '11078', 'โรงพยาบาลกมลาไสย', 'กมลาไสย', '2026-06-17 18:23:37.904', '2026-10-18 03:49:35.000');
 INSERT INTO `hospitals` VALUES (4, '11079', 'โรงพยาบาลร่องคำ', 'ร่องคำ', '2026-06-17 18:23:37.910', '2026-06-17 18:23:37.910');
 INSERT INTO `hospitals` VALUES (5, '11080', 'โรงพยาบาลเขาวง', 'เขาวง', '2026-06-17 18:23:37.916', '2026-06-17 18:23:37.916');
 INSERT INTO `hospitals` VALUES (6, '11081', 'โรงพยาบาลยางตลาด', 'ยางตลาด', '2026-06-17 18:23:37.921', '2026-06-17 18:23:37.921');
@@ -117,10 +117,55 @@ CREATE TABLE `lr_management_summary`  (
   `last_sync_at` datetime(3) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `lr_management_summary_hospital_code_key`(`hospital_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 94 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of lr_management_summary
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for opoh_sync_config
+-- ----------------------------
+DROP TABLE IF EXISTS `opoh_sync_config`;
+CREATE TABLE `opoh_sync_config`  (
+  `id` int(11) NOT NULL DEFAULT 1,
+  `is_auto_sync` tinyint(1) NULL DEFAULT 1,
+  `interval_minutes` decimal(6, 2) NULL DEFAULT 3.00,
+  `base_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'https://appksn.moph.go.th/opoh/api/v1',
+  `api_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `last_sync_at` datetime NULL DEFAULT NULL,
+  `last_sync_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `last_sync_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `updated_at` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of opoh_sync_config
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for opoh_sync_logs
+-- ----------------------------
+DROP TABLE IF EXISTS `opoh_sync_logs`;
+CREATE TABLE `opoh_sync_logs`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sync_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `endpoint` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `status_code` int(11) NULL DEFAULT NULL,
+  `is_success` tinyint(1) NULL DEFAULT 0,
+  `records_count` int(11) NULL DEFAULT 0,
+  `response_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `error_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `duration_ms` int(11) NULL DEFAULT 0,
+  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_created`(`created_at` DESC) USING BTREE,
+  INDEX `idx_endpoint`(`endpoint` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 649 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of opoh_sync_logs
 -- ----------------------------
 
 -- ----------------------------
@@ -140,10 +185,46 @@ CREATE TABLE `or_management_summary`  (
   `last_sync_at` datetime(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `or_management_summary_hospital_code_key`(`hospital_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 38 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of or_management_summary
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for system_config
+-- ----------------------------
+DROP TABLE IF EXISTS `system_config`;
+CREATE TABLE `system_config`  (
+  `config_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `config_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `updated_at` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`config_key`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of system_config
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for user_mfa
+-- ----------------------------
+DROP TABLE IF EXISTS `user_mfa`;
+CREATE TABLE `user_mfa`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `secret` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `recovery_codes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `is_enabled` tinyint(1) NULL DEFAULT 0,
+  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `enabled_at` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `username`(`username` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of user_mfa
 -- ----------------------------
 
 -- ----------------------------
@@ -168,12 +249,12 @@ CREATE TABLE `users`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `users_cid_key`(`cid` ASC) USING BTREE,
   UNIQUE INDEX `users_username_key`(`username` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, '9999999999999', 'admin', '$2b$10$YPMNVB6K8fODQc6kTG0/Q.y0.7NhmycGy2OO2z9qbZiVhLAdqTYIC', 'ผู้ดูแลระบบ', '', NULL, NULL, 'ADMIN', 1, '2026-07-24 00:17:00.000', '2026-07-06 01:34:34.106', '2026-07-06 01:34:34.000', '00033');
+INSERT INTO `users` VALUES (1, '9999999999999', 'admin', '$2b$10$qa6b//OKP9rYVsCH09jIVed5MYztYlMZzgvXCoYhVMVD5VhNqBZ12', 'ผู้ดูแลระบบ', '', NULL, NULL, 'ADMIN', 1, '2026-10-18 03:59:56.000', '2026-07-06 01:34:34.106', '2026-07-06 01:34:34.000', '00033');
 
 -- ----------------------------
 -- Table structure for waiting_or_summary
