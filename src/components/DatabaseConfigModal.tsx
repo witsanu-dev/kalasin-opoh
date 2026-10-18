@@ -15,8 +15,6 @@ import {
   Download,
   Copy,
   Check,
-  Eye,
-  EyeOff,
   KeyRound,
   RefreshCw,
   ShieldCheck,
@@ -41,11 +39,6 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
   const [loading, setLoading] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
-
-  // Show / Hide password toggles
-  const [showHosxpPass, setShowHosxpPass] = useState(false);
-  const [showLocalPass, setShowLocalPass] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
 
   const [testResults, setTestResults] = useState<{ hosxp: TestResult, local: TestResult }>({
     hosxp: { status: 'idle' },
@@ -145,7 +138,6 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
       key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
     handleChange("system", "apiKey", key);
-    setShowApiKey(true);
   };
 
   const handleCopyApiKey = async () => {
@@ -473,21 +465,13 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
                       </div>
                       <div className="relative">
                         <input
-                          type={showApiKey ? "text" : "password"}
+                          type="password"
                           value={config.system.apiKey}
                           onChange={(e) => handleChange("system", "apiKey", e.target.value)}
-                          className="w-full pl-3 pr-20 py-2 bg-white border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                          placeholder="e.g. 99bu8ze8cmpnkc057ay4p"
+                          className="w-full pl-3 pr-10 py-2 bg-white border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                          placeholder="••••••••"
                         />
-                        <div className="absolute inset-y-0 right-1 flex items-center gap-1 pr-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setShowApiKey(!showApiKey)}
-                            className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors"
-                            title={showApiKey ? "ซ่อน Key" : "แสดง Key"}
-                          >
-                            {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
+                        <div className="absolute inset-y-0 right-1 flex items-center pr-1.5">
                           <button
                             type="button"
                             onClick={handleCopyApiKey}
@@ -518,39 +502,6 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
                   </div>
                 ) : (
                   <>
-                    {activeTab === 'local' && (
-                      <div className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
-                        <span className="font-semibold text-slate-700 text-[11px] flex items-center gap-1">
-                          <Server className="w-3.5 h-3.5 text-teal-600" />
-                          ตัวเลือกด่วน:
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setConfig(prev => ({
-                              ...prev,
-                              local: { ...prev.local, host: "opoh-db", port: "3306", database: "db_opoh", user: "opoh_user" }
-                            }));
-                          }}
-                          className="px-2 py-1 bg-white hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors shadow-2xs"
-                        >
-                          🐳 Docker (opoh-db:3306)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setConfig(prev => ({
-                              ...prev,
-                              local: { ...prev.local, host: "127.0.0.1", port: "3306", database: "db_opoh", user: "root" }
-                            }));
-                          }}
-                          className="px-2 py-1 bg-white hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors shadow-2xs"
-                        >
-                          🖥️ เครื่องแม่ (AppServ / XAMPP / MariaDB 3306)
-                        </button>
-                      </div>
-                    )}
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-600">Host / IP Address</label>
@@ -573,13 +524,6 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
                         />
                       </div>
                     </div>
-
-                    {activeTab === 'local' && (
-                      <p className="text-[11px] text-slate-500 bg-teal-50/60 text-teal-800 p-2 rounded-lg border border-teal-100 flex items-start gap-1.5">
-                        <span className="shrink-0">💡</span>
-                        <span>รองรับการเชื่อมต่อทั้ง Docker <code>opoh-db</code>, เครื่องแม่ข่ายผ่าน <strong>AppServ</strong> หรือ <strong>XAMPP</strong> (ระบุ <code>127.0.0.1</code> หรือ IP และ Port เช่น <code>3306</code> หรืออื่นๆ ได้ทันที ระบบจัดการเชื่อมโยงให้อัตโนมัติ)</span>
-                      </p>
-                    )}
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-600">Database Name</label>
@@ -605,33 +549,13 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-slate-600">Password</label>
-                        <div className="relative">
-                          <input
-                            type={
-                              activeTab === 'hosxp'
-                                ? (showHosxpPass ? "text" : "password")
-                                : (showLocalPass ? "text" : "password")
-                            }
-                            value={config[activeTab].password}
-                            onChange={(e) => handleChange(activeTab, "password", e.target.value)}
-                            className="w-full pl-3 pr-10 py-2 bg-white border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                            placeholder="••••••••"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (activeTab === 'hosxp') setShowHosxpPass(!showHosxpPass);
-                              else setShowLocalPass(!showLocalPass);
-                            }}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                          >
-                            {(activeTab === 'hosxp' ? showHosxpPass : showLocalPass) ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
+                        <input
+                          type="password"
+                          value={config[activeTab].password}
+                          onChange={(e) => handleChange(activeTab, "password", e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                          placeholder="••••••••"
+                        />
                       </div>
                     </div>
 

@@ -799,10 +799,10 @@ export function OpohClient({ currentUser, isAdmin }: { currentUser?: any; isAdmi
               <div className="relative flex items-center">
                 <input
                   type="password"
-                  placeholder="กรอก API Key เพื่อยืนยันตัวตน..."
+                  placeholder="••••••••"
                   value={apiKey}
                   onChange={(e) => handleSaveApiKey(e.target.value)}
-                  className="w-full h-10 pl-3 pr-10 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono text-xs transition-all shadow-sm"
+                  className="w-full h-10 px-3 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono text-xs transition-all shadow-sm"
                 />
               </div>
               <p className="text-[11px] text-slate-400 flex items-center gap-1">

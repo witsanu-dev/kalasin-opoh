@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Settings, Database, Activity, Save, Loader2, Hospital, Copy, Check, Globe, Eye, EyeOff, AlertTriangle, ShieldCheck, RotateCcw, Search, KeyRound, UserCheck, ShieldAlert, RefreshCw } from "lucide-react";
+import { Settings, Database, Activity, Save, Loader2, Hospital, Copy, Check, Globe, AlertTriangle, ShieldCheck, RotateCcw, Search, KeyRound, UserCheck, ShieldAlert, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,6 @@ export function SettingsDashboard() {
   const [statusLocal, setStatusLocal] = useState<'idle' | 'online' | 'offline'>('idle');
   const [isDirty, setIsDirty] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
 
   const [envData, setEnvData] = useState<Record<string, string>>({
     NEXT_PUBLIC_HOSPITAL_NAME: "",
@@ -374,19 +373,12 @@ export function SettingsDashboard() {
                 <div className="flex space-x-2">
                   <div className="relative flex-1">
                     <input
-                      type={showApiKey ? "text" : "password"}
+                      type="password"
                       value={envData.API_KEY || ""}
                       onChange={(e) => handleChange("API_KEY", e.target.value)}
-                      className="w-full h-10 pl-3 pr-10 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-slate-50 font-mono"
-                      placeholder="รหัสผ่านสำหรับ สสจ. ดึงข้อมูล"
+                      className="w-full h-10 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-slate-50 font-mono"
+                      placeholder="••••••••"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKey(!showApiKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
-                    >
-                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
                   </div>
                   <Button
                     variant="outline"
@@ -490,7 +482,7 @@ export function SettingsDashboard() {
               </div>
               <div className="space-y-1.5 col-span-2">
                 <label className="text-sm font-medium text-slate-700">Password</label>
-                <input type="password" value={envData.HOSXP_DB_PASSWORD || ""} onChange={(e) => handleChange("HOSXP_DB_PASSWORD", e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-teal-500" />
+                <input type="password" value={envData.HOSXP_DB_PASSWORD || ""} onChange={(e) => handleChange("HOSXP_DB_PASSWORD", e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-teal-500" placeholder="••••••••" />
               </div>
             </div>
           </CardContent>
@@ -532,7 +524,7 @@ export function SettingsDashboard() {
               </div>
               <div className="space-y-1.5 col-span-2">
                 <label className="text-sm font-medium text-slate-700">Password</label>
-                <input type="password" value={envData.LOCAL_DB_PASSWORD || ""} onChange={(e) => handleChange("LOCAL_DB_PASSWORD", e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-teal-500" />
+                <input type="password" value={envData.LOCAL_DB_PASSWORD || ""} onChange={(e) => handleChange("LOCAL_DB_PASSWORD", e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-teal-500" placeholder="••••••••" />
               </div>
             </div>
           </CardContent>
