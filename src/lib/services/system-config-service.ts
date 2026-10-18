@@ -107,21 +107,25 @@ export async function getRawEnvMap(): Promise<{ map: Record<string, string>; sou
 
   // 1. Try reading .env
   try {
-    const stat = await fs.stat(ENV_PATH);
-    if (stat.isFile()) {
-      content = await fs.readFile(ENV_PATH, 'utf-8');
+    if (fsSync.existsSync(ENV_PATH)) {
+      content = fsSync.readFileSync(ENV_PATH, 'utf-8');
       source = 'env';
+    } else {
+      console.warn('[SystemConfig] .env does not exist at:', ENV_PATH);
     }
-  } catch {
-    // 2. Try .env.example if .env does not exist
+  } catch (err: any) {
+    console.error('[SystemConfig] Error reading .env:', err.message);
+  }
+
+  // 2. If .env is empty or not found, try .env.example
+  if (!content) {
     try {
-      const exStat = await fs.stat(ENV_EXAMPLE_PATH);
-      if (exStat.isFile()) {
-        content = await fs.readFile(ENV_EXAMPLE_PATH, 'utf-8');
+      if (fsSync.existsSync(ENV_EXAMPLE_PATH)) {
+        content = fsSync.readFileSync(ENV_EXAMPLE_PATH, 'utf-8');
         source = 'example';
       }
-    } catch {
-      // Both missing
+    } catch (err: any) {
+      console.error('[SystemConfig] Error reading .env.example:', err.message);
     }
   }
 

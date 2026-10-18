@@ -10,6 +10,10 @@ services:
     image: opoh-kalasin:latest
     container_name: opoh_web
     restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
