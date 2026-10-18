@@ -196,8 +196,8 @@ docker exec -it opoh_web node scripts/reset-mfa.js <username>
 
 - **Host:** `localhost` หรือ `IP-Server`
 - **Port:** **`3307`**
-- **User:** `opoh_user`
-- **Password:** `opoh_secure_password` (หรือตามที่ระบุใน `.env`)
+- **User:** `root` หรือ `opoh`
+- **Password:** `opoH@2026`
 - **Database:** `db_opoh`
 
 > [!TIP]

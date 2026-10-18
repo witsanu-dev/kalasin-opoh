@@ -36,8 +36,8 @@ services:
       - HOSXP_DB_CHARSET=${HOSXP_DB_CHARSET:-utf8mb4}
       - LOCAL_DB_HOST=${LOCAL_DB_HOST:-opoh-db}
       - LOCAL_DB_PORT=${LOCAL_DB_PORT:-3306}
-      - LOCAL_DB_USER=${LOCAL_DB_USER:-opoh_user}
-      - LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD:-opoh_secure_password}
+      - LOCAL_DB_USER=${LOCAL_DB_USER:-opoh}
+      - LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD:-opoH@2026}
       - LOCAL_DB_NAME=${LOCAL_DB_NAME:-db_opoh}
     depends_on:
       opoh-db:
@@ -52,10 +52,10 @@ services:
     container_name: opoh_db
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-opoh_root_password}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-opoH@2026}
       - MYSQL_DATABASE=${LOCAL_DB_NAME:-db_opoh}
-      - MYSQL_USER=${LOCAL_DB_USER:-opoh_user}
-      - MYSQL_PASSWORD=${LOCAL_DB_PASSWORD:-opoh_secure_password}
+      - MYSQL_USER=${LOCAL_DB_USER:-opoh}
+      - MYSQL_PASSWORD=${LOCAL_DB_PASSWORD:-opoH@2026}
     ports:
       - "${LOCAL_DB_PORT_MAP:-3307}:3306"
     volumes:

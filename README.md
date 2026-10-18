@@ -133,7 +133,7 @@ docker compose ps
 docker compose logs -f opoh-web
 ```
 - **เปิดใช้งานหน้าเว็บ:** เข้าผ่านเว็บบราวเซอร์ที่ `http://localhost:3000` (หรือ `http://<IP-Server>:3000`)
-- **จัดการฐานข้อมูล Local Cache:** สามารถใช้โปรแกรม Navicat / DBeaver / HeidiSQL ต่อเข้าไปที่ Port **`3307`** (User: `opoh_user`, Password: `opoh_secure_password`, Database: `db_opoh`) โดยไม่ชนกับ MySQL พอร์ต 3306 ของเครื่องแม่
+- **จัดการฐานข้อมูล Local Cache:** สามารถใช้โปรแกรม Navicat / DBeaver / HeidiSQL ต่อเข้าไปที่ Port **`3307`** (User: `root` หรือ `opoh`, Password: `opoH@2026`, Database: `db_opoh`) โดยไม่ชนกับ MySQL พอร์ต 3306 ของเครื่องแม่
 
 ---
 
