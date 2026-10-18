@@ -59,6 +59,7 @@ NEXT_PUBLIC_HOSPITAL_FULL_NAME=โรงพยาบาลกมลาไสย
 # 2. คอนฟิกเชื่อมต่อศูนย์กลาง
 OPOH_BASE_URL=https://appksn.moph.go.th/opoh/api/v1
 API_KEY=รหัส_API_Key_ที่ได้รับจาก_สสจ
+# ช่องทางเข้าดู API Token: https://appksn.moph.go.th/opoh/
 
 # 3. ข้อมูลเชื่อมต่อ HOSxP ของโรงพยาบาล
 # กรณี HOSxP อยู่บน LAN เครื่องอื่น: ใส่ IP จริงของ Server เช่น 192.168.1.100
@@ -75,6 +76,7 @@ HOSXP_DB_CHARSET=utf8mb4
 COOKIE_SECURE=false
 JWT_SECRET=ใส่ข้อความสุ่มยาวอย่างน้อย32ตัวอักษรเพื่อความปลอดภัย
 ```
+> 🔗 **ช่องทางการเข้าดู API Token สำหรับส่งข้อมูล:** [https://appksn.moph.go.th/opoh/](https://appksn.moph.go.th/opoh/)  
 *(หมายเหตุ: ส่วนของ `LOCAL_DB_...` ใน Docker ไม่ต้องแก้ไข ระบบจะเชื่อมโยงเข้าหา Container `opoh-db` ให้อัตโนมัติ)*
 
 ### ขั้นตอนที่ 2.3: สั่งรันระบบทั้งหมด
@@ -257,6 +259,51 @@ docker image prune -f
 * **วิธีแก้ไข:** สั่งบิลด์ระบบใหม่เสมอ:
   - แบบ Docker: `docker compose up -d --build`
   - แบบ Node.js: `npm run build && pm2 restart kls_opoh`
+
+### Q5: เครื่องลูกข่ายในวง LAN หรือระบบภายนอกเข้าใช้งานเว็บผ่าน IP ของ Server ไม่ได้ (Connection Timed Out / ไม่สามารถเชื่อมต่อไซต์นี้ได้)?
+* **สาเหตุ:** Firewall ของเครื่อง Server (Windows Defender Firewall หรือ Linux UFW / Firewalld / iptables) ปิดกั้น Inbound Traffic พอร์ต 3000 หรือยังไม่ได้เปิดพอร์ตบนระบบเครือข่าย
+* **วิธีตรวจสอบเบื้องต้นจากเครื่องลูกข่าย (Client):**
+  - บน Windows (PowerShell):
+    ```powershell
+    Test-NetConnection -ComputerName <IP-Server> -Port 3000
+    ```
+    *(หากแสดง `TcpTestSucceeded : False` แสดงว่าติด Firewall ที่เครื่อง Server)*
+  - บน Linux / macOS:
+    ```bash
+    nc -zv <IP-Server> 3000
+    # หรือ
+    curl -I http://<IP-Server>:3000/login
+    ```
+* **วิธีเปิด Port บน Server อย่างมีมาตรฐานและปลอดภัย:**
+  - **สำหรับ Windows Server / Windows 10/11 (เปิด PowerShell แบบ "Run as Administrator"):**
+    ```powershell
+    # 1. เปิด Port 3000 สำหรับ Web Dashboard & OPOH REST APIs
+    New-NetFirewallRule -DisplayName "OPOH Web Service (Port 3000)" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
+
+    # 2. (กรณีใช้ Docker) เปิด Port 3307 สำหรับเข้าดูฐานข้อมูลแคช Local DB
+    New-NetFirewallRule -DisplayName "OPOH Local DB (Port 3307)" -Direction Inbound -LocalPort 3307 -Protocol TCP -Action Allow
+    ```
+  - **สำหรับ Linux Server (Ubuntu / Debian - UFW):**
+    ```bash
+    # 1. เปิด Port 3000 สำหรับ Web Service
+    sudo ufw allow 3000/tcp comment "OPOH Web Service"
+
+    # 2. (แนะนำ) เปิด Port 3307 เฉพาะ Subnet หรือ IP ของแอดมิน เพื่อความปลอดภัย
+    sudo ufw allow from 192.168.1.0/24 to any port 3307 proto tcp comment "OPOH Local DB Admin"
+
+    # 3. สั่ง Reload Firewall
+    sudo ufw reload
+    sudo ufw status verbose
+    ```
+  - **สำหรับ Linux Server (RHEL / CentOS / Rocky Linux / AlmaLinux - Firewalld):**
+    ```bash
+    # เปิด Port 3000 และ 3307 แบบถาวร
+    sudo firewall-cmd --permanent --add-port=3000/tcp
+    sudo firewall-cmd --permanent --add-port=3307/tcp
+    sudo firewall-cmd --reload
+    ```
+  - **กรณีติดตั้งบน VM หรือ Cloud (VMware ESXi, Proxmox, Hyper-V, Cloud Provider):**
+    - ตรวจสอบ Virtual Switch, VLAN หรือ Security Group ของ Hypervisor ให้ยอมรับ Traffic ขาเข้า (Inbound TCP Port 3000) จากวง LAN ของโรงพยาบาล
 
 ---
 

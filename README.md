@@ -96,13 +96,18 @@ cp .env.example .env
 ### ปรับแต่งค่าใน `.env`:
 เปิดไฟล์ `.env` ด้วย Text Editor และตั้งค่าข้อมูลของโรงพยาบาล:
 ```ini
-# ข้อมูลโรงพยาบาล
+# 1. ข้อมูลโรงพยาบาล
 APP_PORT=3000
 NEXT_PUBLIC_HOSPITAL_CODE=11078
 NEXT_PUBLIC_HOSPITAL_NAME=KAMALASAI
 NEXT_PUBLIC_HOSPITAL_FULL_NAME=โรงพยาบาลกมลาไสย
 
-# การเชื่อมต่อ HOSxP ของโรงพยาบาล
+# 2. คอนฟิกเชื่อมต่อศูนย์กลาง
+OPOH_BASE_URL=https://appksn.moph.go.th/opoh/api/v1
+API_KEY=รหัส_API_Key_ที่ได้รับจาก_สสจ
+# ช่องทางเข้าดู API Token: https://appksn.moph.go.th/opoh/
+
+# 3. การเชื่อมต่อ HOSxP ของโรงพยาบาล
 # หาก HOSxP อยู่บนเครื่อง Host เดียวกัน ให้ใช้: host.docker.internal
 # หาก HOSxP อยู่บนเครื่องอื่นในวง LAN ให้ใส่ IP LAN เช่น 192.168.1.100
 HOSXP_DB_HOST=192.168.1.100
@@ -111,10 +116,11 @@ HOSXP_DB_USER=sa
 HOSXP_DB_PASSWORD=your_hosxp_password
 HOSXP_DB_NAME=hos
 
-# รหัสผ่าน JWT และ Cookie (ตั้งเป็น false หากเปิดเว็บผ่าน HTTP ธรรมดาในวง LAN)
+# 4. รหัสผ่าน JWT และ Cookie (ตั้งเป็น false หากเปิดเว็บผ่าน HTTP ธรรมดาในวง LAN)
 COOKIE_SECURE=false
 JWT_SECRET=your_super_secret_jwt_random_key_min_32_chars
 ```
+> 🔗 **ช่องทางการเข้าดู API Token สำหรับส่งข้อมูล:** [https://appksn.moph.go.th/opoh/](https://appksn.moph.go.th/opoh/)
 
 ### สั่งสร้างและสตาร์ท Container:
 ```bash
@@ -259,6 +265,34 @@ npm run reset-mfa admin
 * **วิธีแก้ไข:**
   - ในไฟล์ `.env` ให้ตั้งค่า `HOSXP_DB_HOST=host.docker.internal`
   - ตรวจสอบว่าใน Firewall ของ Windows / Linux ได้อนุญาตให้พอร์ต 3306 รับการเชื่อมต่อจาก Docker Network แล้ว
+
+### Q4: เครื่องลูกข่ายหรือระบบอื่นในวง LAN เข้าใช้งานเว็บผ่าน IP ของเครื่อง Server ไม่ได้ (Connection Timed Out / ไม่สามารถเชื่อมต่อไซต์นี้ได้)?
+* **สาเหตุ:** Firewall ของเครื่อง Server (Windows Defender Firewall หรือ Linux UFW / Firewalld / iptables) ปิดกั้น Inbound Traffic พอร์ต 3000 หรือยังไม่ได้เปิดพอร์ตบนเครือข่าย
+* **วิธีตรวจสอบเบื้องต้น:**
+  - บนเครื่องลูกข่าย (Client): ทดสอบการเชื่อมต่อมายัง Server
+    - Windows PowerShell: `Test-NetConnection -ComputerName <IP-Server> -Port 3000` (หาก `TcpTestSucceeded : False` แสดงว่าติด Firewall)
+    - Linux / macOS: `nc -zv <IP-Server> 3000` หรือ `curl -I http://<IP-Server>:3000/login`
+* **วิธีเปิด Port บน Server อย่างมีมาตรฐาน:**
+  - **Windows Server / Windows 10/11 (PowerShell Run as Administrator):**
+    ```powershell
+    # 1. เปิด Port 3000 สำหรับ Web Dashboard & OPOH REST APIs
+    New-NetFirewallRule -DisplayName "OPOH Web Service (Port 3000)" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
+
+    # 2. (กรณีใช้ Docker) เปิด Port 3307 สำหรับโปรแกรม Database Client (Navicat/DBeaver)
+    New-NetFirewallRule -DisplayName "OPOH Local DB (Port 3307)" -Direction Inbound -LocalPort 3307 -Protocol TCP -Action Allow
+    ```
+  - **Linux Server (Ubuntu / Debian - UFW):**
+    ```bash
+    sudo ufw allow 3000/tcp comment "OPOH Web Service"
+    sudo ufw allow from 192.168.1.0/24 to any port 3307 proto tcp comment "OPOH DB Admin"
+    sudo ufw reload
+    ```
+  - **Linux Server (RHEL / CentOS / Rocky Linux / AlmaLinux - Firewalld):**
+    ```bash
+    sudo firewall-cmd --permanent --add-port=3000/tcp
+    sudo firewall-cmd --permanent --add-port=3307/tcp
+    sudo firewall-cmd --reload
+    ```
 
 ---
 
