@@ -27,7 +27,7 @@ DROP TABLE IF EXISTS `api_keys`;
 CREATE TABLE `api_keys`  (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hospital_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `api_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `api_key` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `updated_at` datetime(3) NOT NULL,
@@ -46,20 +46,20 @@ CREATE TABLE `api_keys`  (
 DROP TABLE IF EXISTS `bed_management_summary`;
 CREATE TABLE `bed_management_summary`  (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ward_code` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `ward_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `ward_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ward_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `total_bed` int(11) NULL DEFAULT 0,
   `actual_bed` int(11) NULL DEFAULT NULL,
   `occupied_bed` int(11) NULL DEFAULT 0,
   `available_bed` int(11) NULL DEFAULT 0,
   `occupancy_rate` decimal(5, 2) NULL DEFAULT 0.00,
-  `export_code` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `export_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `last_sync_at` datetime(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `hospital_code` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `hospital_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_icu` tinyint(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `bed_management_summary_hospital_code_ward_code_key`(`hospital_code` ASC, `ward_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of bed_management_summary
