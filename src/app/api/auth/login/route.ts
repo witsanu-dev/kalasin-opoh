@@ -268,14 +268,7 @@ export async function POST(req: Request) {
           const lUser = localRows[0];
 
           if (lUser.is_active === 1) {
-            let passwordsMatch = await bcrypt.compare(cleanPassword, lUser.password);
-
-            // One-time auto-upgrade: If default documented admin password is used on legacy hash
-            if (!passwordsMatch && cleanUsername === 'admin' && cleanPassword === 'opoH@2026') {
-              const newHash = await bcrypt.hash('opoH@2026', 10);
-              await localDb.query('UPDATE users SET password = ? WHERE id = ?', [newHash, lUser.id]);
-              passwordsMatch = true;
-            }
+            const passwordsMatch = await bcrypt.compare(cleanPassword, lUser.password);
 
             if (passwordsMatch) {
               await localDb.query('UPDATE users SET last_login_at = NOW() WHERE id = ?', [lUser.id]);
