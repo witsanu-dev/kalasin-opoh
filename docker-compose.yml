@@ -25,7 +25,7 @@ services:
       - NEXT_PUBLIC_HOSPITAL_FULL_NAME=${NEXT_PUBLIC_HOSPITAL_FULL_NAME:-โรงพยาบาลกมลาไสย}
       - OPOH_BASE_URL=${OPOH_BASE_URL:-https://appksn.moph.go.th/opoh/api/v1}
       - API_KEY=${API_KEY}
-      - JWT_SECRET=${JWT_SECRET:-opoh_jwt_secret_key_change_me_in_production}
+      - JWT_SECRET=${JWT_SECRET}
       - ADMIN_USERNAMES=${ADMIN_USERNAMES:-admin,sa,bmsadmin,ict,it}
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
       - HOSXP_DB_HOST=${HOSXP_DB_HOST:-host.docker.internal}
@@ -37,7 +37,7 @@ services:
       - LOCAL_DB_HOST=${LOCAL_DB_HOST:-opoh-db}
       - LOCAL_DB_PORT=${LOCAL_DB_PORT:-3306}
       - LOCAL_DB_USER=${LOCAL_DB_USER:-opoh}
-      - LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD:-opoH@2026}
+      - LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD}
       - LOCAL_DB_NAME=${LOCAL_DB_NAME:-db_opoh}
     depends_on:
       opoh-db:
@@ -52,10 +52,10 @@ services:
     container_name: opoh_db
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-opoH@2026}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-${LOCAL_DB_PASSWORD}}
       - MYSQL_DATABASE=${LOCAL_DB_NAME:-db_opoh}
       - MYSQL_USER=${LOCAL_DB_USER:-opoh}
-      - MYSQL_PASSWORD=${LOCAL_DB_PASSWORD:-opoH@2026}
+      - MYSQL_PASSWORD=${LOCAL_DB_PASSWORD}
     ports:
       - "${LOCAL_DB_PORT_MAP:-3307}:3306"
     volumes:
