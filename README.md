@@ -116,10 +116,17 @@ HOSXP_DB_USER=sa
 HOSXP_DB_PASSWORD=your_hosxp_password
 HOSXP_DB_NAME=hos
 
-# 4. รหัสผ่าน JWT และ Cookie (ตั้งเป็น false หากเปิดเว็บผ่าน HTTP ธรรมดาในวง LAN)
+# 4. รหัสผ่าน JWT และ Cookie
+# สุ่มสร้าง JWT Secret ความยาวอย่างน้อย 32 ตัวอักษรด้วยคำสั่ง: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 COOKIE_SECURE=false
-JWT_SECRET=your_super_secret_jwt_random_key_min_32_chars
+JWT_SECRET=ใส่รหัสสุ่มความยาวอย่างน้อย32ตัวอักษรที่สร้างจากคำสั่งด้านบน
 ```
+> [!WARNING]
+> **ข้อกำหนดความปลอดภัยของระบบ:** ห้ามใช้ค่าเริ่มต้นหรือเว้นว่าง `JWT_SECRET` โดยเด็ดขาด ในโหมด Production หากค่าสั้นกว่า 32 ตัวอักษร ระบบจะปฏิเสธการเริ่มทำงานทันที (Fail-Secure) เพื่อป้องกันการปลอมแปลง Session
+
+> [!CAUTION]
+> **การจัดการความลับ (Secrets Management):** ห้ามนำไฟล์ `.env` หรือไฟล์ที่มีรหัสผ่านจริงขึ้นสู่ Git Repository สาธารณะเป็นอันขาด ตรวจสอบให้แน่ใจว่าไฟล์ `.env` ถูกระบุไว้ใน `.gitignore` เรียบร้อยแล้ว
+
 > 🔗 **ช่องทางการเข้าดู API Token สำหรับส่งข้อมูล:** [https://appksn.moph.go.th/opoh/](https://appksn.moph.go.th/opoh/)
 
 ### สั่งสร้างและสตาร์ท Container:
@@ -133,7 +140,9 @@ docker compose ps
 docker compose logs -f opoh-web
 ```
 - **เปิดใช้งานหน้าเว็บ:** เข้าผ่านเว็บบราวเซอร์ที่ `http://localhost:3000` (หรือ `http://<IP-Server>:3000`)
-- **จัดการฐานข้อมูล Local Cache:** สามารถใช้โปรแกรม Navicat / DBeaver / HeidiSQL ต่อเข้าไปที่ Port **`3307`** (User: `root` หรือ `opoh`, Password: `opoH@2026`, Database: `db_opoh`) โดยไม่ชนกับ MySQL พอร์ต 3306 ของเครื่องแม่
+- **จัดการฐานข้อมูล Local Cache:** สามารถใช้โปรแกรม Navicat / DBeaver / HeidiSQL ต่อเข้าไปที่ Port **`3307`** (User: `root` หรือ `opoh`, Password ค่าเริ่มต้น: `opoH@2026`, Database: `db_opoh`) โดยไม่ชนกับ MySQL พอร์ต 3306 ของเครื่องแม่
+  > [!TIP]
+  > **คำแนะนำด้านความปลอดภัย:** สำหรับสภาพแวดล้อม Production แนะนำให้เปลี่ยนค่า `LOCAL_DB_PASSWORD` ในไฟล์ `.env` เป็นรหัสผ่านเฉพาะของโรงพยาบาลเสมอ
 
 ---
 
@@ -190,17 +199,24 @@ pm2 startup
 
 ## 🔌 การตั้งค่าฐานข้อมูลผ่านหน้าเว็บ (UI Database Configuration)
 
-ระบบมาพร้อมกับหน้าต่าง **"Database Configuration Modal"** เพื่ออำนวยความสะดวกให้ผู้ดูแลระบบสามารถปรับเปลี่ยน IP ฐานข้อมูลและทดสอบการเชื่อมต่อได้โดยตรง:
+ระบบมาพร้อมกับหน้าต่าง **"Database Configuration Modal"** เพื่ออำนวยความสะดวกให้ผู้ดูแลระบบสามารถปรับเปลี่ยน IP ฐานข้อมูลและทดสอบการเชื่อมต่อได้โดยตรง ภายใต้มาตรฐานความปลอดภัยระดับสูง (**Role-Based Access Control**):
 
-1. เปิดไปที่หน้า Login: `http://localhost:3000/login`
-2. คลิกที่ **ไอคอนรูปฐานข้อมูล (Database Icon)** บริเวณมุมล่างของหน้าจอ
+> [!IMPORTANT]
+> **การควบคุมสิทธิ์เข้าถึง (Access Control):** เพื่อป้องกันการเข้าถึงข้อมูลการเชื่อมต่อฐานข้อมูลโดยไม่ได้รับอนุญาต (ตามรายงานประเมินความปลอดภัย `KOP-OPOH-SEC-2026-001`):
+> - **กรณีที่ยังไม่ได้เข้าสู่ระบบ (Unauthenticated):** หน้าต่างนี้จะทำหน้าที่เป็น **Network Diagnostic Ping** เพื่อให้ผู้ใช้สามารถตรวจสอบสถานะการเชื่อมต่อไปยัง HOSxP และ Local DB ได้เท่านั้น โดยระบบจะปิดกั้นการแสดงและบันทึกรหัสผ่าน
+> - **กรณีต้องการแก้ไขหรือบันทึกการตั้งค่า (Configuration Editing):** ผู้ดูแลระบบต้อง **เข้าสู่ระบบด้วยสิทธิ์ Admin เสียก่อน** (เช่น บัญชี Local Admin หรือ HOSxP Admin) จึงจะสามารถดูและกดบันทึกการตั้งค่าได้
+
+### ขั้นตอนการตั้งค่าสำหรับผู้ดูแลระบบ:
+1. เข้าสู่ระบบด้วยบัญชี Admin (กรณีเริ่มต้นระบบใหม่ ให้เข้าสู่ระบบด้วยบัญชี Local Admin: `admin` / `opoH@2026`)
+2. คลิกที่ **ไอคอนรูปฐานข้อมูล (Database Icon)** บริเวณมุมล่างของหน้าจอ หรือไปที่เมนู **"ตั้งค่าระบบ" (Settings)**
 3. กรอกข้อมูล Host, Port, User, Password ของ HOSxP และ Local Database:
    - **ฐานข้อมูลระบบ (Local DB):** รองรับทั้ง Container ภายใน (`opoh-db:3306`), **AppServ**, **XAMPP** หรือ MySQL/MariaDB ในเครื่องแม่ข่าย (สามารถระบุ `127.0.0.1` หรือ `localhost` และ Port เช่น `3306` หรือพอร์ตอื่นๆ ได้ทันที ระบบ Docker มี Smart Gateway Map เข้าเครื่อง Host ให้อัตโนมัติ พร้อมปุ่มเลือก Preset 1-Click)
 4. กดปุ่ม **"ทดสอบการเชื่อมต่อ" (Ping & Deep Check):**
    - ระบบจะทดสอบทั้ง Network Ping และตรวจสอบความพร้อมของตารางหลัก (`opduser`, `officer`, `doctor`, `ward`)
 5. กดปุ่ม **"บันทึกการตั้งค่า":**
-   - ระบบจะทำการ **Hot-Reload In-Memory Connection Pool** ทันที และบันทึกลงฐานข้อมูล `system_config` รวมถึงไฟล์ `.env`
-   - **ผู้ใช้งานสามารถเข้าสู่ระบบและเริ่มใช้งานได้ทันทีโดยไม่ต้อง Restart Server หรือ Container**
+   - ระบบจะทำการ **Hot-Reload In-Memory Connection Pool** ทันที และบันทึกสำรองลงตาราง `system_config` รวมถึงไฟล์ `.env`
+   - รหัสผ่านจะถูกบันทึกอย่างปลอดภัย และเมื่อแสดงผลในหน้าจอจะถูก Mask เป็น `••••••••` เสมอ
+   - **ผู้ใช้งานสามารถเข้าสู่ระบบด้วยบัญชี HOSxP ได้ทันทีโดยไม่ต้อง Restart Server หรือ Container**
 
 ---
 
@@ -209,6 +225,7 @@ pm2 startup
 ### 1. การตรวจสอบสิทธิ์ Admin แบบอัตโนมัติ (Universal Admin Detection)
 ระบบจะตรวจจับผู้ใช้งาน HOSxP ที่มีสิทธิ์ระดับ Admin ให้อัตโนมัติ โดยอ้างอิงจากตาราง `opduser`:
 - อยู่ในกลุ่ม `groupname` ที่มีคำว่า `admin`, `administrator`, `ศูนย์คอมพิวเตอร์`, `งานสารสนเทศ`
+- มีคำว่า `IT` หรือ `ICT` ในรูปแบบคำเดี่ยว (`\b(it|ict)\b`)
 - มีสิทธิ์ใน `accessright` ที่มีคำว่า `[ADMIN]`
 - มีตำแหน่งงาน `position` ที่มีคำว่า `นักวิชาการคอมพิวเตอร์`, `เจ้าพนักงานคอมพิวเตอร์`
 - หรือระบุ Username ไว้ในตัวแปร `ADMIN_USERNAMES=admin,sa,ict,it,...` ในไฟล์ `.env`
@@ -217,6 +234,11 @@ pm2 startup
 หากยังไม่ได้เชื่อมต่อ HOSxP สามารถเข้าสู่ระบบด้วยบัญชี Local Admin:
 - **Username:** `admin`
 - **Password:** `opoH@2026`
+
+> [!WARNING]
+> **ข้อปฏิบัติสำคัญหลังการติดตั้ง:**
+> 1. หลังจากเชื่อมต่อฐานข้อมูล HOSxP สำเร็จ แนะนำให้เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบของ HOSxP และเปลี่ยนรหัสผ่านของบัญชี Local `admin` หรือปิดใช้งาน
+> 2. เปิดใช้งานระบบยืนยันตัวตน 2 ขั้นตอน (2FA / TOTP) สำหรับบัญชีผู้ดูแลระบบทุกบัญชีทันที
 
 ### 3. ระบบยืนยันตัวตน 2 ขั้นตอน (2-Factor Authentication / TOTP)
 - รองรับ Google Authenticator, Microsoft Authenticator และแอป TOTP มาตรฐาน
@@ -279,21 +301,40 @@ npm run reset-mfa admin
     # 1. เปิด Port 3000 สำหรับ Web Dashboard & OPOH REST APIs
     New-NetFirewallRule -DisplayName "OPOH Web Service (Port 3000)" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
 
-    # 2. (กรณีใช้ Docker) เปิด Port 3307 สำหรับโปรแกรม Database Client (Navicat/DBeaver)
-    New-NetFirewallRule -DisplayName "OPOH Local DB (Port 3307)" -Direction Inbound -LocalPort 3307 -Protocol TCP -Action Allow
+    # 2. (กรณีใช้ Docker) เปิด Port 3307 สำหรับเครื่อง Admin (แนะนำจำกัด RemoteAddress เฉพาะ IP เครื่องแอดมิน)
+    New-NetFirewallRule -DisplayName "OPOH Local DB Admin (Port 3307)" -Direction Inbound -LocalPort 3307 -Protocol TCP -RemoteAddress 192.168.1.0/24 -Action Allow
     ```
   - **Linux Server (Ubuntu / Debian - UFW):**
     ```bash
+    # 1. เปิด Port 3000 สำหรับ Web Service
     sudo ufw allow 3000/tcp comment "OPOH Web Service"
+
+    # 2. เปิด Port 3307 เฉพาะ Subnet หรือ IP เครื่องแอดมิน เพื่อความปลอดภัย
     sudo ufw allow from 192.168.1.0/24 to any port 3307 proto tcp comment "OPOH DB Admin"
     sudo ufw reload
     ```
   - **Linux Server (RHEL / CentOS / Rocky Linux / AlmaLinux - Firewalld):**
     ```bash
     sudo firewall-cmd --permanent --add-port=3000/tcp
-    sudo firewall-cmd --permanent --add-port=3307/tcp
+    # แนะนำจำกัด Port 3307 ในระดับ Rich Rule เฉพาะ IP แอดมิน:
+    sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" port port="3307" protocol="tcp" accept'
     sudo firewall-cmd --reload
     ```
+
+---
+
+## 🛡️ การประเมินและมาตรฐานความมั่นคงปลอดภัยสารสนเทศ (Security Hardening)
+
+ระบบได้รับการตรวจสอบและปรับปรุงความมั่นคงปลอดภัยตามมาตรฐานรายงานการประเมินเลขที่ **`KOP-OPOH-SEC-2026-001`** และแผนปฏิบัติการ **`KOP-SEC-PLAN-2026-V1`** เรียบร้อยแล้ว (สถานะ: **CLOSED ✅**):
+
+- **Zero Unauthenticated Configuration Access:** ปิดกั้น API การตั้งค่าฐานข้อมูลและระบบทั้งหมด ต้องผ่านการยืนยันตัวตนระดับ Admin เท่านั้น
+- **Strict Data Masking:** ไม่ส่งรหัสผ่านฐานข้อมูลและ `JWT_SECRET` กลับไปยัง Client (Browser)
+- **Safe SQL Script Execution:** มี SQL Guard ตรวจสอบคำสั่งอนุญาตเฉพาะ `SELECT` หรือ `WITH` ป้องกันคำสั่ง DDL/DML อันตราย
+- **No Hard-coded Backdoors:** ใช้มาตรฐานการเข้ารหัส Bcrypt แบบมี Salt และยกเลิกการเก็บรหัสผ่านใน LocalStorage
+- **Fail-Secure Architecture:** บังคับใช้ Production JWT Secret ขนาดอย่างน้อย 32 ตัวอักษร
+- **Enterprise Security Headers:** ติดตั้ง `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` ป้องกัน Clickjacking และการโจมตีบนเว็บเบราว์เซอร์
+
+*(ดูรายละเอียดเชิงเทคนิคและผลการตรวจสอบทั้งหมดได้ที่เอกสาร: [`SECURITY_REMEDIATION_SUMMARY.md`](./SECURITY_REMEDIATION_SUMMARY.md))*
 
 ---
 

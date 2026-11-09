@@ -74,8 +74,15 @@ HOSXP_DB_CHARSET=utf8mb4
 # 4. ความปลอดภัยของ Cookie สำหรับวง LAN
 # ตั้งเป็น false หากเปิดใช้งานผ่าน HTTP (เช่น http://192.168.1.x:3000)
 COOKIE_SECURE=false
-JWT_SECRET=ใส่ข้อความสุ่มยาวอย่างน้อย32ตัวอักษรเพื่อความปลอดภัย
+# สุ่มสร้างคีย์ยาว 64 ตัวอักษรด้วยคำสั่ง: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+JWT_SECRET=ใส่ข้อความสุ่มยาวอย่างน้อย32ตัวอักษรที่สร้างจากคำสั่งด้านบน
 ```
+> [!WARNING]
+> **ข้อกำหนดความปลอดภัยของระบบ:** ห้ามใช้ค่าเริ่มต้นหรือเว้นว่าง `JWT_SECRET` โดยเด็ดขาด ในโหมด Production หากค่าสั้นกว่า 32 ตัวอักษร ระบบจะปฏิเสธการเริ่มทำงานทันที (Fail-Secure) เพื่อป้องกันการปลอมแปลง Session
+
+> [!CAUTION]
+> **การจัดการความลับ (Secrets Management):** ห้ามนำไฟล์ `.env` หรือไฟล์ที่มีรหัสผ่านจริงขึ้นสู่ Git Repository สาธารณะเป็นอันขาด ตรวจสอบให้แน่ใจว่าไฟล์ `.env` ถูกระบุไว้ใน `.gitignore` เรียบร้อยแล้ว
+
 > 🔗 **ช่องทางการเข้าดู API Token สำหรับส่งข้อมูล:** [https://appksn.moph.go.th/opoh/](https://appksn.moph.go.th/opoh/)  
 *(หมายเหตุ: ส่วนของ `LOCAL_DB_...` ใน Docker ไม่ต้องแก้ไข ระบบจะเชื่อมโยงเข้าหา Container `opoh-db` ให้อัตโนมัติ)*
 
@@ -147,17 +154,22 @@ pm2 startup
 
 ## 4. การตั้งค่าการเชื่อมต่อฐานข้อมูลผ่านหน้าเว็บ (UI Setup Modal)
 
-หากแอดมินต้องการเปลี่ยน IP ของ HOSxP หรือปรับแต่งค่าเชื่อมต่อในภายหลัง **ไม่ต้องแก้ไฟล์หรือ Restart Server**:
+หากแอดมินต้องการเปลี่ยน IP ของ HOSxP หรือปรับแต่งค่าเชื่อมต่อในภายหลัง **ไม่ต้องแก้ไฟล์หรือ Restart Server** ภายใต้การควบคุมสิทธิ์เข้าถึง (**Role-Based Access Control**):
 
-1. เปิดหน้า Login: `http://localhost:3000/login`
-2. คลิกที่ **ไอคอนรูปฐานข้อมูล (Database Icon)** บริเวณมุมล่างของหน้าต่าง Login
-3. ระบบจะแสดงหน้าต่าง **"ตั้งค่าการเชื่อมต่อฐานข้อมูล (Database Configuration)"**
-4. กรอกข้อมูล Host, Port, User, Password:
+> [!IMPORTANT]
+> **การควบคุมสิทธิ์เข้าถึง (Access Control):** ตามรายงานความมั่นคงปลอดภัย `KOP-OPOH-SEC-2026-001`:
+> - **ขณะยังไม่ได้เข้าสู่ระบบ (Unauthenticated):** โมดัลนี้จะทำงานในโหมด **Diagnostic Ping** เพื่อให้ตรวจสอบสถานะการออนไลน์ของเครือข่ายเท่านั้น โดยระบบจะปิดกั้นการแสดงและบันทึกรหัสผ่านฐานข้อมูล
+> - **การแก้ไขและบันทึกคอนฟิก:** ต้อง **เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ (Admin)** จึงจะสามารถเปิดดูและกดบันทึกการตั้งค่าได้
+
+### ขั้นตอนการตั้งค่า:
+1. เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบ (กรณีเริ่มติดตั้งระบบครั้งแรก ให้ล็อกอินด้วย Local Admin: `admin` / `opoH@2026`)
+2. คลิกที่ **ไอคอนรูปฐานข้อมูล (Database Icon)** หรือเข้าเมนู **"ตั้งค่าระบบ" (Settings)**
+3. กรอกข้อมูล Host, Port, User, Password:
    - **ฐานข้อมูลระบบ (Local DB):** รองรับทั้ง Container ภายใน (`opoh-db:3306`), **AppServ**, **XAMPP** หรือ MySQL/MariaDB ในเครื่องแม่ข่าย (สามารถระบุ `127.0.0.1` หรือ `localhost` และ Port เช่น `3306` หรือพอร์ตอื่นๆ ได้ทันที ระบบ Docker มี Smart Gateway Map เข้าเครื่อง Host ให้อัตโนมัติ พร้อมปุ่มเลือก Preset 1-Click)
-5. กดปุ่ม **"ทดสอบการเชื่อมต่อ"**:
+4. กดปุ่ม **"ทดสอบการเชื่อมต่อ"**:
    - ระบบจะทำการ Ping เครือข่าย และตรวจสอบโครงสร้างตารางหลัก (`opduser`, `doctor`, `officer`, `ward`) ให้ทันที
-6. กดปุ่ม **"บันทึกการตั้งค่า"**:
-   - ระบบจะทำ **In-Memory Hot-Reload** ทันที และบันทึกสำรองลงตาราง `system_config` รวมถึงไฟล์ `.env`
+5. กดปุ่ม **"บันทึกการตั้งค่า"**:
+   - ระบบจะทำ **In-Memory Hot-Reload** ทันที และบันทึกสำรองลงตาราง `system_config` รวมถึงไฟล์ `.env` (รหัสผ่านจะถูกบันทึกอย่างปลอดภัย และ Mask เป็น `••••••••` ในหน้าจอ)
    - **ผู้ใช้งานสามารถล็อกอินด้วยบัญชี HOSxP ได้ทันทีโดยไม่ต้อง Restart Server หรือ Container**
 
 ---
@@ -167,14 +179,20 @@ pm2 startup
 ### 5.1 การเข้าสู่ระบบด้วยสิทธิ์ Admin ของ HOSxP
 ระบบตรวจจับสิทธิ์ Admin จากตาราง `opduser` ของ HOSxP ให้อัตโนมัติ:
 - อยู่ในกลุ่ม `groupname` เช่น `admin`, `administrator`, `ศูนย์คอมพิวเตอร์`, `งานสารสนเทศ`
+- มีคำว่า `IT` หรือ `ICT` ในรูปแบบคำเดี่ยว (`\b(it|ict)\b`)
 - มีสิทธิ์ใน `accessright` ที่ระบุ `[ADMIN]`
 - ดำรงตำแหน่ง `position` เช่น `นักวิชาการคอมพิวเตอร์`, `เจ้าพนักงานคอมพิวเตอร์`
-- หรือระบุชื่อบัญชีไว้ในตัวแปร `ADMIN_USERNAMES=admin,sa,ict,...` ในไฟล์ `.env`
+- หรือระบุชื่อบัญชีไว้ในตัวแปร `ADMIN_USERNAMES=admin,sa,ict,it,...` ในไฟล์ `.env`
 
 ### 5.2 บัญชี Admin สำรองกรณีฉุกเฉิน (Local Emergency Admin)
 หากยังไม่ได้ต่อ HOSxP หรือระบบเครือข่ายของ HOSxP ขัดข้อง สามารถใช้บัญชีนี้เข้าจัดการระบบได้:
 - **Username:** `admin`
 - **Password:** `opoH@2026`
+
+> [!WARNING]
+> **ข้อปฏิบัติสำคัญหลังการติดตั้ง:**
+> 1. หลังจากเชื่อมต่อ HOSxP สำเร็จ แนะนำให้ล็อกอินด้วยบัญชี Admin ของโรงพยาบาล และเปลี่ยนรหัสผ่านหรือปิดใช้งานบัญชี Local `admin` เดิม
+> 2. บังคับเปิดใช้งานระบบยืนยันตัวตน 2 ขั้นตอน (MFA) ให้กับบัญชีผู้ดูแลระบบทุกบัญชีทันที
 
 ### 5.3 การรีเซ็ต MFA กรณีเจ้าหน้าที่ทำรหัสหาย (Emergency MFA Reset CLI)
 หากเจ้าหน้าที่ทำสมาร์ทโฟนหายหรือลบแอป Google Authenticator แอดมินสามารถปลดล็อกให้ได้ทันทีผ่าน Terminal:
@@ -282,8 +300,8 @@ docker image prune -f
     # 1. เปิด Port 3000 สำหรับ Web Dashboard & OPOH REST APIs
     New-NetFirewallRule -DisplayName "OPOH Web Service (Port 3000)" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
 
-    # 2. (กรณีใช้ Docker) เปิด Port 3307 สำหรับเข้าดูฐานข้อมูลแคช Local DB
-    New-NetFirewallRule -DisplayName "OPOH Local DB (Port 3307)" -Direction Inbound -LocalPort 3307 -Protocol TCP -Action Allow
+    # 2. (กรณีใช้ Docker) เปิด Port 3307 สำหรับเครื่อง Admin (แนะนำจำกัด RemoteAddress เฉพาะ IP เครื่องแอดมิน)
+    New-NetFirewallRule -DisplayName "OPOH Local DB Admin (Port 3307)" -Direction Inbound -LocalPort 3307 -Protocol TCP -RemoteAddress 192.168.1.0/24 -Action Allow
     ```
   - **สำหรับ Linux Server (Ubuntu / Debian - UFW):**
     ```bash
