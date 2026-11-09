@@ -2,8 +2,17 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
 // Secret key for JWT signing. Must be at least 32 characters in production.
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_development_environment';
-const encodedSecret = new TextEncoder().encode(JWT_SECRET);
+export function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.trim().length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[CRITICAL SECURITY ERROR] JWT_SECRET is missing or shorter than 32 characters in production!');
+      throw new Error('FATAL: Secure JWT_SECRET (minimum 32 characters) is mandatory in production mode.');
+    }
+    return new TextEncoder().encode('fallback_secret_for_development_environment_min_32_chars');
+  }
+  return new TextEncoder().encode(secret.trim());
+}
 
 export interface SessionPayload {
   id: number;
@@ -23,13 +32,13 @@ export async function encrypt(payload: SessionPayload) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('1d') // Default 1 day
-    .sign(encodedSecret);
+    .sign(getJwtSecret());
 }
 
 export async function decrypt(session: string | undefined = '') {
   if (!session) return null;
   try {
-    const { payload } = await jwtVerify(session, encodedSecret, {
+    const { payload } = await jwtVerify(session, getJwtSecret(), {
       algorithms: ['HS256'],
     });
     return payload as SessionPayload;
@@ -56,7 +65,7 @@ export async function encryptMfaToken(payload: SessionPayload) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('5m')
-    .sign(encodedSecret);
+    .sign(getJwtSecret());
 }
 
 /**
@@ -74,7 +83,7 @@ export function isCookieSecure(): boolean {
 export async function decryptMfaToken(token: string) {
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, encodedSecret, {
+    const { payload } = await jwtVerify(token, getJwtSecret(), {
       algorithms: ['HS256'],
     });
     if (!payload.isMfaPreAuth) return null;
@@ -100,7 +109,7 @@ export function isUserAdmin(user: SessionPayload | null | undefined): boolean {
   // 2. Standard Hospital Administrative Usernames (Universal across hospitals)
   const usernameLower = String(user.username || '').trim().toLowerCase();
   const defaultAdminUsernames = [
-    'admin', 'administrator', 'sa', 'bmsadmin', 'root', 'ict', 'it', 'hosxp', 'opoh'
+    'admin', 'administrator', 'sa', 'bmsadmin', 'root', 'ict'
   ];
   if (defaultAdminUsernames.includes(usernameLower)) {
     return true;
@@ -115,12 +124,16 @@ export function isUserAdmin(user: SessionPayload | null | undefined): boolean {
     return true;
   }
 
-  // 4. HOSxP Group Name Check (Universal keywords for IT/Admin units)
+  // 4. HOSxP Group Name Check (Universal keywords for IT/Admin units with safe word-boundary matching)
   const groupName = String(user.groupname || '').toLowerCase();
   const adminGroupKeywords = [
-    'admin', 'administrator', 'ผู้ดูแลระบบ', 'ศูนย์คอม', 'สารสนเทศ', 'ict', 'it', 'computer', 'ระบบสารสนเทศ'
+    'admin', 'administrator', 'ผู้ดูแลระบบ', 'ศูนย์คอม', 'สารสนเทศ', 'computer', 'ระบบสารสนเทศ'
   ];
   if (adminGroupKeywords.some((kw) => groupName.includes(kw))) {
+    return true;
+  }
+  // Word boundary regex for 'it' and 'ict' to avoid matching 'audit', 'nutrition', 'rehabilitation', 'security'
+  if (/\b(it|ict)\b/i.test(groupName)) {
     return true;
   }
 
@@ -137,6 +150,9 @@ export function isUserAdmin(user: SessionPayload | null | undefined): boolean {
     'นักวิชาการคอมพิวเตอร์', 'เจ้าพนักงานคอมพิวเตอร์', 'คอมพิวเตอร์', 'สารสนเทศ', 'เทคโนโลยีสารสนเทศ'
   ];
   if (itPositionKeywords.some((kw) => position.includes(kw) || department.includes(kw))) {
+    return true;
+  }
+  if (/\b(it|ict)\b/i.test(position) || /\b(it|ict)\b/i.test(department)) {
     return true;
   }
 

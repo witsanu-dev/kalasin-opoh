@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { getSession, isUserAdmin } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const session = await getSession();
+    if (!session || !session.username) {
+      return NextResponse.json({ error: 'Unauthorized: กรุณาเข้าสู่ระบบก่อนทำรายการ' }, { status: 401 });
+    }
+    if (!isUserAdmin(session)) {
+      return NextResponse.json({ error: 'Forbidden: สงวนสิทธิ์เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const download = searchParams.get('download');
 

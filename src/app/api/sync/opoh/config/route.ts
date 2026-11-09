@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSyncConfig, updateSyncConfig, initAutoSyncScheduler, cleanUpOrphanedTimers, SAFE_MINIMUM_INTERVAL_MINUTES } from '@/lib/services/opoh-sync-service';
+import { getSession, isUserAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,20 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession();
+    if (!session || !session.username) {
+      return NextResponse.json(
+        { success: false, message: 'กรุณาเข้าสู่ระบบก่อนทำรายการ' },
+        { status: 401 }
+      );
+    }
+    if (!isUserAdmin(session)) {
+      return NextResponse.json(
+        { success: false, message: 'Forbidden: สงวนสิทธิ์เฉพาะผู้ดูแลระบบเท่านั้น' },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { is_auto_sync, interval_minutes, base_url, api_key } = body;
 

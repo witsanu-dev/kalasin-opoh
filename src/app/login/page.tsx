@@ -36,12 +36,19 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    // Load remembered credentials on mount
+    // Clean up any legacy insecure password storage
+    try {
+      localStorage.removeItem('opoh_password');
+    } catch {}
+
+    // Load remembered username only (never store password in client storage)
     const savedUsername = localStorage.getItem('opoh_username');
-    const savedPassword = localStorage.getItem('opoh_password');
-    if (savedUsername && savedPassword) {
-      setUsername(atob(savedUsername));
-      setPassword(atob(savedPassword));
+    if (savedUsername) {
+      try {
+        setUsername(atob(savedUsername));
+      } catch {
+        setUsername(savedUsername);
+      }
       setRememberMe(true);
     }
   }, []);
@@ -98,14 +105,13 @@ export default function LoginPage() {
           return;
         }
 
-        // Save or clear credentials based on rememberMe
+        // Save or clear username based on rememberMe (never save password in localStorage)
         if (rememberMe) {
           localStorage.setItem('opoh_username', btoa(username));
-          localStorage.setItem('opoh_password', btoa(password));
         } else {
           localStorage.removeItem('opoh_username');
-          localStorage.removeItem('opoh_password');
         }
+        localStorage.removeItem('opoh_password');
 
         router.push('/');
         router.refresh();
@@ -137,11 +143,10 @@ export default function LoginPage() {
       if (data.success) {
         if (rememberMe) {
           localStorage.setItem('opoh_username', btoa(username));
-          localStorage.setItem('opoh_password', btoa(password));
         } else {
           localStorage.removeItem('opoh_username');
-          localStorage.removeItem('opoh_password');
         }
+        localStorage.removeItem('opoh_password');
         router.push('/');
         router.refresh();
       } else {
@@ -174,11 +179,10 @@ export default function LoginPage() {
       if (data.success) {
         if (rememberMe) {
           localStorage.setItem('opoh_username', btoa(username));
-          localStorage.setItem('opoh_password', btoa(password));
         } else {
           localStorage.removeItem('opoh_username');
-          localStorage.removeItem('opoh_password');
         }
+        localStorage.removeItem('opoh_password');
 
         await Swal.fire({
           icon: 'success',

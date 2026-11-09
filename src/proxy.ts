@@ -8,10 +8,11 @@ const publicPaths = [
   '/api/auth/login', 
   '/api/auth/mfa/verify-login', 
   '/api/auth/mfa/recovery-login',
-  '/api/db-config', 
-  '/api/db-config/test', 
-  '/api/db-schema'
+  '/api/db-config/test'
 ];
+
+// File extensions for public static assets
+const STATIC_ASSET_REGEX = /\.(ico|png|jpg|jpeg|gif|webp|svg|css|js|woff|woff2|ttf|eot)$/i;
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -21,8 +22,8 @@ export async function proxy(request: NextRequest) {
     publicPaths.includes(pathname) ||
     pathname.startsWith('/api/opoh/') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon.ico') ||
-    pathname.includes('.') // like .png, .svg
+    pathname === '/favicon.ico' ||
+    STATIC_ASSET_REGEX.test(pathname)
   ) {
     return NextResponse.next();
   }

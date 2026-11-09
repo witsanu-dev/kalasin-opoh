@@ -32,6 +32,33 @@ export interface GroupedConfig {
   source?: string;
 }
 
+export const PASSWORD_MASK = '••••••••';
+
+export const ALLOWED_CONFIG_KEYS = new Set([
+  'APP_PORT',
+  'NEXT_PUBLIC_HOSPITAL_CODE',
+  'NEXT_PUBLIC_HOSPITAL_NAME',
+  'NEXT_PUBLIC_HOSPITAL_FULL_NAME',
+  'OPOH_BASE_URL',
+  'API_KEY',
+  'API_KEY_CREATED_AT',
+  'HOSXP_DB_HOST',
+  'HOSXP_DB_PORT',
+  'HOSXP_DB_USER',
+  'HOSXP_DB_PASSWORD',
+  'HOSXP_DB_NAME',
+  'HOSXP_DB_CHARSET',
+  'LOCAL_DB_HOST',
+  'LOCAL_DB_PORT',
+  'LOCAL_DB_USER',
+  'LOCAL_DB_PASSWORD',
+  'LOCAL_DB_NAME',
+  'LOCAL_DB_PORT_MAP',
+  'ADMIN_USERNAMES',
+  'JWT_SECRET',
+  'COOKIE_SECURE'
+]);
+
 /**
  * Standard key mapper between Grouped structure (Modal) and Flat structure (.env / Settings)
  */
@@ -42,7 +69,13 @@ export function groupedToFlat(grouped: Partial<GroupedConfig>): Record<string, s
     if (grouped.hosxp.host !== undefined) flat['HOSXP_DB_HOST'] = String(grouped.hosxp.host).trim();
     if (grouped.hosxp.port !== undefined) flat['HOSXP_DB_PORT'] = String(grouped.hosxp.port).trim();
     if (grouped.hosxp.user !== undefined) flat['HOSXP_DB_USER'] = String(grouped.hosxp.user).trim();
-    if (grouped.hosxp.password !== undefined) flat['HOSXP_DB_PASSWORD'] = String(grouped.hosxp.password);
+    if (
+      grouped.hosxp.password !== undefined &&
+      grouped.hosxp.password !== PASSWORD_MASK &&
+      String(grouped.hosxp.password).trim() !== ''
+    ) {
+      flat['HOSXP_DB_PASSWORD'] = String(grouped.hosxp.password);
+    }
     if (grouped.hosxp.database !== undefined) flat['HOSXP_DB_NAME'] = String(grouped.hosxp.database).trim();
   }
 
@@ -50,7 +83,13 @@ export function groupedToFlat(grouped: Partial<GroupedConfig>): Record<string, s
     if (grouped.local.host !== undefined) flat['LOCAL_DB_HOST'] = String(grouped.local.host).trim();
     if (grouped.local.port !== undefined) flat['LOCAL_DB_PORT'] = String(grouped.local.port).trim();
     if (grouped.local.user !== undefined) flat['LOCAL_DB_USER'] = String(grouped.local.user).trim();
-    if (grouped.local.password !== undefined) flat['LOCAL_DB_PASSWORD'] = String(grouped.local.password);
+    if (
+      grouped.local.password !== undefined &&
+      grouped.local.password !== PASSWORD_MASK &&
+      String(grouped.local.password).trim() !== ''
+    ) {
+      flat['LOCAL_DB_PASSWORD'] = String(grouped.local.password);
+    }
     if (grouped.local.database !== undefined) flat['LOCAL_DB_NAME'] = String(grouped.local.database).trim();
   }
 
@@ -186,37 +225,71 @@ export async function getRawEnvMap(): Promise<{ map: Record<string, string>; sou
 
 /**
  * Get unified system config (available both as flat dictionary and grouped structure)
+ * @param options.maskSecrets - When true (default), sensitive database passwords and secrets are masked.
  */
-export async function getUnifiedConfig(): Promise<{
+export async function getUnifiedConfig(options: { maskSecrets?: boolean } = { maskSecrets: true }): Promise<{
   grouped: GroupedConfig;
   flat: Record<string, string>;
   source: string;
 }> {
   const { map, source } = await getRawEnvMap();
-  const grouped = flatToGrouped(map, source);
-  return { grouped, flat: map, source };
+  const returnedMap = { ...map };
+
+  if (options.maskSecrets) {
+    if (returnedMap['HOSXP_DB_PASSWORD']) {
+      returnedMap['HOSXP_DB_PASSWORD'] = PASSWORD_MASK;
+    }
+    if (returnedMap['LOCAL_DB_PASSWORD']) {
+      returnedMap['LOCAL_DB_PASSWORD'] = PASSWORD_MASK;
+    }
+    // Never expose JWT_SECRET in client responses
+    delete returnedMap['JWT_SECRET'];
+  }
+
+  const grouped = flatToGrouped(returnedMap, source);
+  return { grouped, flat: returnedMap, source };
 }
 
 /**
  * Unified Save: Saves configuration to .env, process.env, DB connection pools,
  * and synchronizes with existing tables in database (system_config, api_keys, hospitals, opoh_sync_config).
  */
-export async function saveUnifiedConfig(payload: any): Promise<{
+export async function saveUnifiedConfig(
+  payload: any,
+  modifierUser: string = 'system'
+): Promise<{
   success: boolean;
   message: string;
   config: GroupedConfig;
 }> {
   // 1. Normalize payload into flat updates
-  let flatUpdates: Record<string, string> = {};
+  let rawUpdates: Record<string, string> = {};
 
   if (payload.hosxp || payload.local || payload.system) {
-    flatUpdates = groupedToFlat(payload);
+    rawUpdates = groupedToFlat(payload);
   } else if (typeof payload === 'object' && payload !== null) {
     for (const [k, v] of Object.entries(payload)) {
       if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
-        flatUpdates[k] = String(v).trim();
+        rawUpdates[k] = String(v).trim();
       }
     }
+  }
+
+  // Filter against allowed keys and sanitize newlines to prevent .env injection
+  const flatUpdates: Record<string, string> = {};
+  for (const [key, value] of Object.entries(rawUpdates)) {
+    if (!ALLOWED_CONFIG_KEYS.has(key)) continue;
+
+    // Ignore masked password values or empty passwords to prevent overwriting existing valid password
+    if ((key === 'HOSXP_DB_PASSWORD' || key === 'LOCAL_DB_PASSWORD') && (value === PASSWORD_MASK || value === '')) {
+      continue;
+    }
+    if (key === 'JWT_SECRET' && (value === PASSWORD_MASK || value === '')) {
+      continue;
+    }
+
+    // Strip carriage return and newlines
+    flatUpdates[key] = String(value).replace(/[\r\n]/g, '');
   }
 
   // 2. Read current .env content or template
@@ -398,12 +471,37 @@ export async function saveUnifiedConfig(payload: any): Promise<{
         // Ignore if table unavailable
       }
     }
+    // 7.5 system_audit_logs table (Audit trail for configuration modifications)
+    try {
+      await localDb.query(`
+        CREATE TABLE IF NOT EXISTS system_audit_logs (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          action VARCHAR(50) NOT NULL,
+          username VARCHAR(100) NOT NULL,
+          details TEXT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      const logDetails = Object.keys(flatUpdates)
+        .map(k => k.includes('PASSWORD') ? `${k}=[UPDATED]` : `${k}=${flatUpdates[k]}`)
+        .join(', ');
+
+      if (logDetails) {
+        await localDb.query(
+          `INSERT INTO system_audit_logs (action, username, details, created_at) VALUES (?, ?, ?, NOW())`,
+          ['CONFIG_UPDATE', modifierUser, logDetails]
+        );
+      }
+    } catch (e) {
+      // Ignore if database audit log table fails
+    }
   } catch (dbErr) {
     console.warn('Database configuration synchronization skipped (database may not be ready yet):', dbErr);
   }
 
-  // 8. Return updated config
-  const { grouped } = await getUnifiedConfig();
+  // 8. Return updated config (masked)
+  const { grouped } = await getUnifiedConfig({ maskSecrets: true });
 
   return {
     success: true,

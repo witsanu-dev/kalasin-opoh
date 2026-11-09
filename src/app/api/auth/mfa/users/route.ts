@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, isUserAdmin } from '@/lib/auth';
 import { getAllMfaUsers } from '@/lib/mfa';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +11,12 @@ export async function GET() {
       return NextResponse.json(
         { success: false, message: 'กรุณาเข้าสู่ระบบ' },
         { status: 401 }
+      );
+    }
+    if (!isUserAdmin(session)) {
+      return NextResponse.json(
+        { success: false, message: 'Forbidden: สงวนสิทธิ์เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น' },
+        { status: 403 }
       );
     }
 

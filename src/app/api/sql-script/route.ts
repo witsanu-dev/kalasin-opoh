@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSqlQuery, updateSqlQuery } from '@/lib/utils/sql-reader';
 import hosxpDb from '@/lib/db/hosxp';
+import { getSession, isUserAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,21 @@ const REQUIRED_COLUMNS: Record<string, string[]> = {
   sync_or: ['room_available', 'operating_count', 'waiting_count', 'completed_count', 'cancelled_count', 'total_case_today']
 };
 
+const FORBIDDEN_SQL_PATTERNS = [
+  /\b(drop|truncate|delete|insert|update|alter|create|replace)\b/i,
+  /\b(grant|revoke|shutdown)\b/i,
+  /\b(into\s+outfile|into\s+dumpfile|load_file)\b/i
+];
+
 export async function GET(request: Request) {
+  const session = await getSession();
+  if (!session || !session.username) {
+    return NextResponse.json({ error: 'Unauthorized: จำเป็นต้องเข้าสู่ระบบ' }, { status: 401 });
+  }
+  if (!isUserAdmin(session)) {
+    return NextResponse.json({ error: 'Forbidden: สงวนสิทธิ์เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น' }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
 
@@ -34,6 +49,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session || !session.username) {
+      return NextResponse.json({ error: 'Unauthorized: จำเป็นต้องเข้าสู่ระบบ' }, { status: 401 });
+    }
+    if (!isUserAdmin(session)) {
+      return NextResponse.json({ error: 'Forbidden: สงวนสิทธิ์เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { type, sql } = body;
 
@@ -46,12 +69,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid script type' }, { status: 400 });
     }
 
+    // Security Guard: Check forbidden modifying keywords and ensure SELECT / WITH only
+    const cleanSql = sql.trim().replace(/;+$/, '');
+    if (!/^(select|with)\b/i.test(cleanSql)) {
+      return NextResponse.json({ 
+        error: 'ปฏิเสธคำสั่ง: คำสั่ง SQL ต้องขึ้นต้นด้วย SELECT หรือ WITH เท่านั้น' 
+      }, { status: 400 });
+    }
+
+    for (const pattern of FORBIDDEN_SQL_PATTERNS) {
+      if (pattern.test(cleanSql)) {
+        return NextResponse.json({ 
+          error: 'ปฏิเสธคำสั่ง: ไม่อนุญาตให้ใช้คำสั่งดัดแปลง สร้าง ลบ หรือแก้ไขโครงสร้างฐานข้อมูล (DROP, DELETE, UPDATE, INSERT, ALTER ฯลฯ)' 
+        }, { status: 400 });
+      }
+    }
+
     // Validation: Execute a limited query to check returned columns
     try {
-      // Remove trailing semicolon and wrap in subquery
-      const cleanSql = sql.trim().replace(/;+$/, '');
       const testQuery = `SELECT * FROM (${cleanSql}) AS t LIMIT 0`;
-      
       const [rows, fields]: any = await hosxpDb.query(testQuery);
       
       if (!fields || !Array.isArray(fields)) {

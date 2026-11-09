@@ -323,8 +323,10 @@ async function sendEndpointData(
   const startTime = Date.now();
   const url = `${baseUrl.replace(/\/+$/, '')}${endpoint}`;
 
-  // Bypass SSL certificate check for government/internal server
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  // Optional: Only allow TLS bypass if explicitly configured in environment
+  if (process.env.ALLOW_INSECURE_TLS === 'true') {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS);
