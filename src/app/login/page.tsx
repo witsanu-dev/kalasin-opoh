@@ -518,10 +518,10 @@ export default function LoginPage() {
             onClick={() => setIsConfigModalOpen(true)}
             title={
               dbStatus === 'online'
-                ? `เชื่อมต่อสมบูรณ์ทั้ง 2 ฐาน (Online)\n- HOSxP: ${dbDetails?.hosxp?.host || '10.250.100.200'} (${dbDetails?.hosxp?.database || 'hos'})\n- Local DB: ${dbDetails?.local?.host || '127.0.0.1'} (${dbDetails?.local?.database || 'db_opoh'})\nคลิกเพื่อดูการตั้งค่า`
+                ? `เชื่อมต่อสมบูรณ์ทั้ง 2 ฐาน (Online)\n- HOSxP: Online\n- Local DB: Online\nคลิกเพื่อดูสถานะการเชื่อมต่อ`
                 : dbStatus === 'connecting'
-                  ? `เชื่อมต่อสำเร็จ 1 จาก 2 ฐาน (Connecting...)\n- HOSxP: ${dbDetails?.hosxp?.online ? 'Online' : 'Offline'}\n- Local DB: ${dbDetails?.local?.online ? 'Online' : 'Offline'}\nคลิกเพื่อตั้งค่า`
-                  : 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (Offline)\nคลิกเพื่อตั้งค่าการเชื่อมต่อ'
+                  ? `เชื่อมต่อสำเร็จ 1 จาก 2 ฐาน (Connecting...)\n- HOSxP: ${dbDetails?.hosxp?.online ? 'Online' : 'Offline'}\n- Local DB: ${dbDetails?.local?.online ? 'Online' : 'Offline'}\nคลิกเพื่อตรวจสอบสถานะ`
+                  : 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (Offline)\nคลิกเพื่อตรวจสอบสถานะการเชื่อมต่อ'
             }
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all shadow-sm hover:scale-105 cursor-pointer ${dbStatus === 'online'
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100 hover:border-emerald-300'

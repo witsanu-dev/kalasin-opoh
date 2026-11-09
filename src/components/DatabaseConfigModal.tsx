@@ -520,7 +520,7 @@ export default function DatabaseConfigModal({ isOpen, onClose }: DatabaseConfigM
                           value={config[activeTab].host}
                           onChange={(e) => handleChange(activeTab, "host", e.target.value)}
                           className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                          placeholder={activeTab === 'hosxp' ? "10.250.100.200 or 192.168.1.x" : "127.0.0.1"}
+                          placeholder={activeTab === 'hosxp' ? "192.168.1.100 or host.docker.internal" : "127.0.0.1"}
                         />
                       </div>
                       <div className="space-y-1.5">

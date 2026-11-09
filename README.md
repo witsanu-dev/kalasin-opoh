@@ -334,7 +334,7 @@ npm run reset-mfa admin
 - **Fail-Secure Architecture:** บังคับใช้ Production JWT Secret ขนาดอย่างน้อย 32 ตัวอักษร
 - **Enterprise Security Headers:** ติดตั้ง `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` ป้องกัน Clickjacking และการโจมตีบนเว็บเบราว์เซอร์
 
-*(ดูรายละเอียดเชิงเทคนิคและผลการตรวจสอบทั้งหมดได้ที่เอกสาร: [`SECURITY_REMEDIATION_SUMMARY.md`](./SECURITY_REMEDIATION_SUMMARY.md))*
+*(ระบบผ่านการทดสอบตรรกะความปลอดภัย, Type Check และ Production Build สำเร็จ 100%)*
 
 ---
 

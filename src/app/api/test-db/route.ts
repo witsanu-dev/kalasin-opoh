@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
 import { resolveDbHost } from '@/lib/db/host-resolver';
+import { getSession, isUserAdmin } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!isUserAdmin(session)) {
+    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const { host, port, user, password, database } = await req.json();
 

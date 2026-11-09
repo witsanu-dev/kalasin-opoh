@@ -551,12 +551,12 @@ Content-Type: application/json
 ```bash
 # ดึงสถานะเตียงทั้งหมด
 curl -X GET "http://192.168.1.100:3000/api/opoh/beds" \
-     -H "Authorization: Bearer opoh_secret_token_kalasin_2026" \
+     -H "Authorization: Bearer YOUR_LOCAL_API_KEY" \
      -H "Content-Type: application/json"
 
 # สั่งกระตุ้นการซิงค์ข้อมูลขึ้นเซิร์ฟเวอร์กลางทันที
 curl -X POST "http://192.168.1.100:3000/api/sync/opoh/trigger" \
-     -H "Authorization: Bearer opoh_secret_token_kalasin_2026"
+     -H "Authorization: Bearer YOUR_LOCAL_API_KEY"
 ```
 
 ---
@@ -566,7 +566,7 @@ curl -X POST "http://192.168.1.100:3000/api/sync/opoh/trigger" \
 const axios = require('axios');
 
 const API_BASE_URL = 'http://192.168.1.100:3000';
-const API_KEY = 'opoh_secret_token_kalasin_2026';
+const API_KEY = 'YOUR_LOCAL_API_KEY';
 
 async function fetchHospitalBeds() {
   try {
@@ -602,7 +602,7 @@ fetchHospitalBeds();
 import requests
 
 API_BASE_URL = "http://192.168.1.100:3000"
-API_KEY = "opoh_secret_token_kalasin_2026"
+API_KEY = "YOUR_LOCAL_API_KEY"
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",

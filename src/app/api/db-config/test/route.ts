@@ -3,10 +3,14 @@ import mysql from 'mysql2/promise';
 import hosxpDb from '@/lib/db/hosxp';
 import localDb from '@/lib/db/local';
 import { resolveDbHost } from '@/lib/db/host-resolver';
+import { getSession, isUserAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const session = await getSession();
+  const isAdmin = isUserAdmin(session);
+
   const timeoutPromise = (ms: number) =>
     new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), ms));
 
@@ -15,15 +19,15 @@ export async function GET() {
       await Promise.race([hosxpDb.query('SELECT 1'), timeoutPromise(3000)]);
       return {
         online: true,
-        host: process.env.HOSXP_DB_HOST || '',
-        database: process.env.HOSXP_DB_NAME || ''
+        host: isAdmin ? (process.env.HOSXP_DB_HOST || '') : undefined,
+        database: isAdmin ? (process.env.HOSXP_DB_NAME || '') : undefined
       };
     } catch (e: any) {
       return {
         online: false,
-        host: process.env.HOSXP_DB_HOST || '',
-        database: process.env.HOSXP_DB_NAME || '',
-        error: e.message
+        host: isAdmin ? (process.env.HOSXP_DB_HOST || '') : undefined,
+        database: isAdmin ? (process.env.HOSXP_DB_NAME || '') : undefined,
+        error: isAdmin ? e.message : 'Connection failed'
       };
     }
   };
@@ -33,15 +37,15 @@ export async function GET() {
       await Promise.race([localDb.query('SELECT 1'), timeoutPromise(3000)]);
       return {
         online: true,
-        host: process.env.LOCAL_DB_HOST || '',
-        database: process.env.LOCAL_DB_NAME || ''
+        host: isAdmin ? (process.env.LOCAL_DB_HOST || '') : undefined,
+        database: isAdmin ? (process.env.LOCAL_DB_NAME || '') : undefined
       };
     } catch (e: any) {
       return {
         online: false,
-        host: process.env.LOCAL_DB_HOST || '',
-        database: process.env.LOCAL_DB_NAME || '',
-        error: e.message
+        host: isAdmin ? (process.env.LOCAL_DB_HOST || '') : undefined,
+        database: isAdmin ? (process.env.LOCAL_DB_NAME || '') : undefined,
+        error: isAdmin ? e.message : 'Connection failed'
       };
     }
   };
@@ -68,6 +72,22 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  // Enforce Administrator authorization to prevent unauthenticated SSRF/port scanning
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized: โปรดเข้าสู่ระบบก่อนทดสอบการเชื่อมต่อ' },
+      { status: 401 }
+    );
+  }
+
+  if (!isUserAdmin(session)) {
+    return NextResponse.json(
+      { success: false, error: 'Forbidden: เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถทดสอบการเชื่อมต่อได้' },
+      { status: 403 }
+    );
+  }
+
   try {
     const config = await req.json();
 
